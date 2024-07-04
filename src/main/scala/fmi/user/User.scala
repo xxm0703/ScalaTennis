@@ -21,7 +21,7 @@ object UserId:
   given Schema[UserId] = Schema(SchemaType.SString())
 
 enum UserRole derives ConfiguredEnumCodec:
-  case Admin, NormalUser
+  case Admin, Owner, Player
 
 object UserRole:
   given Schema[UserRole] = Schema.derivedEnumeration()

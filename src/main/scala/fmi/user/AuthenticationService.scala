@@ -25,7 +25,7 @@ class AuthenticationService(usersDao: UsersDao, tokenSignatureService: TokenSign
           userId = UserId(email)
           user <- EitherT(usersDao.retrieveUser(userId).map(_.toRight(UnauthorizedAccess("User must login"))))
           _ <- EitherT.fromEither[IO](
-            if maybeRole.forall(_ == user.role) then ().asRight
+            if maybeRole.forall(_.ordinal >= user.role.ordinal) then ().asRight
             else ForbiddenResource(s"User $email does not have rights to access this resource").asLeft
           )
         yield AuthenticatedUser(userId, user.role)).value
@@ -33,6 +33,9 @@ class AuthenticationService(usersDao: UsersDao, tokenSignatureService: TokenSign
     def authenticateAdmin: PartialServerEndpoint[String, AuthenticatedUser, I, E, O, R, IO] =
       securityEndpoint.authenticate(Some(UserRole.Admin))
 
+    def authenticateOwner: PartialServerEndpoint[String, AuthenticatedUser, I, E, O, R, IO] =
+      securityEndpoint.authenticate(Some(UserRole.Owner))
+      
   def sessionWithUser(userId: UserId): IO[CookieValueWithMeta] =
     tokenSignatureService.sign(userId.email).map(CookieValueWithMeta.unsafeApply(_, path = Some("/")))
 
