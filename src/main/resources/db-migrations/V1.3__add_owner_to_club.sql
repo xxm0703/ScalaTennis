@@ -1,0 +1,5 @@
+ALTER TABLE club ADD COLUMN owner VARCHAR(255) NOT NULL;
+ALTER TABLE club ADD CONSTRAINT fk_owner FOREIGN KEY (owner) REFERENCES user (email);
+
+
+
