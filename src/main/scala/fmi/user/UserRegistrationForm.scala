@@ -21,7 +21,7 @@ object UserRegistrationForm:
     (
       validateEmail(userRegistrationForm.email),
       PasswordUtils.hash(userRegistrationForm.password).rightNec,
-      UserRole.NormalUser.rightNec,
+      UserRole.Player.rightNec,
       validateName(userRegistrationForm.name),
       validateAge(userRegistrationForm.age)
     ).parMapN(User.apply)

@@ -1,14 +1,14 @@
 package fmi.user
 
 import cats.effect.IO
-import fmi.infrastructure.db.DoobieDatabase.DbTransactor
 import cats.syntax.functor.*
 import doobie.*
 import doobie.implicits.*
 import doobie.postgres.sqlstate
+import fmi.infrastructure.db.DoobieDatabase.DbTransactor
 
 object UserDbGivens:
-  given Meta[UserRole] = Meta[String].imap(UserRole.valueOf)(_.toString)
+  given Meta[UserRole] = Meta[String].imap(s => UserRole.valueOf(s.capitalize))(_.toString.toLowerCase)
 
 class UsersDao(dbTransactor: DbTransactor):
   import UserDbGivens.given
