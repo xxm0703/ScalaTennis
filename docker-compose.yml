@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_ARBITRARY: 1
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8.0
+    restart: always
+    container_name: mysql
+    volumes:
+      - ./db:/var/lib/mysql
+    expose:
+      - $DB_PORT
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: tennisapp
+      MYSQL_USER: tennisapp
+      MYSQL_PASSWORD: secret-P@assw0rd

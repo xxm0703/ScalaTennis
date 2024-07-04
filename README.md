@@ -1,2 +1,13 @@
-# ScalaTennis
-Really cool tennis app for booking courts. As an final project in the Scala course. It aims to kill ClickNPlay as a competitor
+# Tennis Application
+
+# DB Setup
+
+Run Docker container with MySQL database:
+
+`docker compose up -d`
+
+Then you can manage the database through the phpMyAdmin interface at `http://localhost:8080`.
+
+# Run application
+
+The application can be started with `sbt run`.
