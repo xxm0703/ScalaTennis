@@ -23,6 +23,16 @@ class CourtDao(dbTransactor: DbTransactor):
       .option
       .transact(dbTransactor)
 
+  def retrieveCourtsForClub(id: ClubId): IO[List[Court]] =
+    sql"""
+      SELECT id, name, surface, club_id
+      FROM court
+      WHERE club_id = $id
+    """
+      .query[Court]
+      .to[List]
+      .transact(dbTransactor)
+  
   def getOwnedCourts(id: UserId): IO[List[Court]] =
     sql"""
       SELECT court.id, court.name, surface, club_id

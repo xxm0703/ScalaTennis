@@ -5,19 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ea93fe2c-b321-4844-85b5-2b4d4ac4913b" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/scala/fmi/club/ClubDao.scala" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/scala/fmi/court/CourtController.scala" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/scala/fmi/court/CourtEndpoints.scala" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/scala/fmi/court/CourtModule.scala" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/scala/fmi/TennisApp.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/fmi/TennisApp.scala" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/scala/fmi/club/ClubController.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/fmi/club/ClubController.scala" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/scala/fmi/club/ClubDao.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/fmi/club/ClubDao.scala" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/scala/fmi/club/ClubEndpoints.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/fmi/club/ClubEndpoints.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/scala/fmi/club/ClubModule.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/fmi/club/ClubModule.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/scala/fmi/club/Court.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/fmi/court/Court.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/scala/fmi/club/CourtAvailabilityDao.scala" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/scala/fmi/club/CourtDao.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/fmi/court/CourtDao.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/scala/fmi/reservation/Order.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/fmi/reservation/Order.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/scala/fmi/reservation/TennisController.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/fmi/reservation/TennisController.scala" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/scala/fmi/court/CourtController.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/fmi/court/CourtController.scala" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/scala/fmi/court/CourtDao.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/fmi/court/CourtDao.scala" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/scala/fmi/court/CourtEndpoints.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/fmi/court/CourtEndpoints.scala" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -71,7 +66,7 @@
     "Application.TennisApp.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "git-widget-placeholder": "refactor-class-placement",
+    "git-widget-placeholder": "Rebasing court-operations",
     "jdk.selected.JAVA_MODULE": "openjdk-22",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "/home/martinjordanov/IdeaProjects/ScalaTennis/scala-tennis/src/main/scala/fmi/club",

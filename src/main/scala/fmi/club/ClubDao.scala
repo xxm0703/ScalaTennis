@@ -23,15 +23,6 @@ class ClubDao(dbTransactor: DbTransactor):
       .to[List]
       .transact(dbTransactor)
   
-  def isUserOwner(user: AuthenticatedUser, id: ClubId): ConnectionIO[Option[Int]] =
-    sql"""
-        SELECT 1
-        FROM club
-        WHERE ${user.role} = "admin" OR (club.owner = ${user.id} AND club.id = $id)
-    """
-      .query[Int]
-      .option
-  
   def upsertClub(user: AuthenticatedUser, club: Club): IO[Either[String, Unit]] =
     checkOwnershipAndExistence(user, club.id)
       .flatMap {
