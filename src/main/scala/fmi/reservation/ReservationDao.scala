@@ -54,7 +54,7 @@ class ReservationDao(dbTransactor: DbTransactor):
       .to[List]
       .transact(dbTransactor)
 
-  def deleteReservation(id: ReservationId): IO[Either[ReservationNotFound, Unit]] = {
+  def deleteReservation(id: ReservationId): IO[Either[ReservationNotFound, Unit]] =
     sql"""
          DELETE FROM reservation
          WHERE id = $id
@@ -64,4 +64,30 @@ class ReservationDao(dbTransactor: DbTransactor):
         case 0 => IO.pure(Left(ReservationNotFound(id)))
         case _ => IO.pure(Right(()))
       }
-  }
+
+  def updateReservationStatus(id: ReservationId, newStatus: ReservationStatus)
+    : IO[Either[ReservationNotFound, Reservation]] =
+    val updateQuery =
+      sql"""
+      UPDATE reservation
+      SET reservation_status = $newStatus
+      WHERE id = $id
+    """.update.run
+
+    val retrieveQuery = sql"""
+      SELECT id, user_id, court_id, start_time, placing_timestamp, reservation_status
+      FROM reservation
+      WHERE id = $id
+    """.query[Reservation].option
+
+    updateQuery.transact(dbTransactor).flatMap {
+      case 0 => IO.pure(Left(ReservationNotFound(id)))
+      case _ =>
+        retrieveQuery.transact(dbTransactor).map {
+          case Some(updatedReservation) => Right(updatedReservation)
+          case None =>
+            Left(
+              ReservationNotFound(id)
+            ) // This case is unlikely but handles the case where the reservation is not found after update.
+        }
+    }

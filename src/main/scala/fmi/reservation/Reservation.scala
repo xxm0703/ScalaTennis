@@ -34,10 +34,10 @@ object ReservationId:
   given tapir.Codec[String, ReservationId, CodecFormat.TextPlain] = tapir.Codec.string.map(ReservationId.apply)(_.id)
 
 enum ReservationStatus derives ConfiguredEnumCodec:
-  case cancelled, approved, placed
+  case Cancelled, Approved, Placed
 
 object ReservationStatus:
   given Meta[ReservationStatus] =
-    Meta[String].imap[ReservationStatus](ReservationStatus.valueOf)(_.toString.toLowerCase)
+    Meta[String].imap[ReservationStatus](x => ReservationStatus.valueOf(x.capitalize))(_.toString.toLowerCase)
 
   given Schema[ReservationStatus] = Schema.derivedEnumeration()

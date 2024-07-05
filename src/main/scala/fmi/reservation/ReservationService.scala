@@ -6,9 +6,8 @@ import cats.syntax.all.*
 import doobie.implicits.*
 import fmi.ResourceNotFound
 import fmi.infrastructure.db.DoobieDatabase.DbTransactor
-import fmi.club.{ClubAdjustment, CourtAvailabilityDao, CourtId, NotEnoughAvailabilityAvailable, NotEnoughAvailabilityAvailableException}
-import fmi.reservation.ReservationForm
-import fmi.reservation.ReservationStatus.placed
+import fmi.club.CourtId
+import fmi.reservation.ReservationStatus.Placed
 import fmi.user.UserId
 import fmi.utils.DerivationConfiguration.given
 import io.circe.Codec
@@ -30,7 +29,7 @@ class ReservationService(dbTransactor: DbTransactor)(reservationDao: Reservation
       reservationForm.courtId,
       reservationForm.startTime,
       placingTimestamp,
-      placed
+      Placed
     )
 
     maybeReservation <- transactReservation(reservation)
@@ -59,12 +58,20 @@ class ReservationService(dbTransactor: DbTransactor)(reservationDao: Reservation
   def getAllReservationsForCourt(courtId: CourtId): IO[List[Reservation]] =
     reservationDao.retrieveReservationsForCourt(courtId)
 
-  def deleteReservationLogic(reservationId: ReservationId): IO[Either[ResourceNotFound, Unit]] = {
+  def deleteReservationLogic(reservationId: ReservationId): IO[Either[ResourceNotFound, Unit]] =
     reservationDao.deleteReservation(reservationId).flatMap {
       case Right(_) => IO.pure(Right(()))
       case Left(_) => IO.pure(Left(ResourceNotFound("No such reservation was found")))
     }
-  }
+
+  def updateReservationStatus(reservationStatusChangeForm: ReservationStatusChangeForm)
+    : IO[Either[ReservationNotFound, Reservation]] =
+    reservationDao
+      .updateReservationStatus(reservationStatusChangeForm.reservationId, reservationStatusChangeForm.reservationStatus)
+      .flatMap {
+        case Right(res) => IO.pure(Right(res))
+        case Left(_) => IO.pure(Left(ReservationNotFound(reservationStatusChangeForm.reservationId)))
+      }
 
 sealed trait ReservationError derives ConfiguredCodec, Schema
 case class ReservationAlreadyExists(reservation: ReservationId) extends ReservationError

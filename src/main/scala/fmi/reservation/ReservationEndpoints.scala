@@ -4,13 +4,14 @@ import fmi.club.CourtId
 import fmi.{
   AuthenticationError,
   ConflictDescription,
+  ReservationDeletionError,
+  ReservationStatusUpdateError,
   ResourceNotFound,
-  TennisAppEndpoints,
+  TennisAppEndpoints
 }
-import sttp.model.StatusCode.{BadRequest, Conflict, NoContent, NotFound}
+import sttp.model.StatusCode.{BadRequest, Conflict, Forbidden, NoContent, NotFound, Unauthorized}
 import sttp.tapir.{oneOfVariant, *}
 import sttp.tapir.json.circe.*
-
 case class ErrorResponse(message: String)
 
 object ReservationEndpoints:
@@ -38,11 +39,32 @@ object ReservationEndpoints:
       )
       .get
 
-  val deleteReservationEndpoint: Endpoint[String, ReservationId, (AuthenticationError | ResourceNotFound), Unit, Any] =
+  val deleteReservationEndpoint
+    : Endpoint[String, ReservationId, (AuthenticationError | ReservationDeletionError), Unit, Any] =
     reservationsBaseEndpoint.secure
       .in(path[ReservationId].name("reservation-id"))
       .out(statusCode(NoContent))
-      .errorOutVariantPrepend[AuthenticationError | ResourceNotFound](
-        oneOfVariant(statusCode(NotFound).and(jsonBody[ResourceNotFound].description("No such reservation was found")))
+      .errorOutVariantPrepend[AuthenticationError | ReservationDeletionError](
+        oneOfVariant(
+          statusCode(BadRequest).and(jsonBody[ReservationDeletionError].description("No such reservation was found"))
+        )
       )
       .delete
+
+  val changeReservationStatusEndpoint: Endpoint[
+    String,
+    ReservationStatusChangeForm,
+    AuthenticationError | ReservationStatusUpdateError,
+    Reservation,
+    Any
+  ] =
+    reservationsBaseEndpoint.secure
+      .in(jsonBody[ReservationStatusChangeForm])
+      .out(jsonBody[Reservation])
+      .errorOutVariantPrepend[AuthenticationError | ReservationStatusUpdateError](
+        oneOfVariant(
+          statusCode(BadRequest)
+            .and(jsonBody[ReservationStatusUpdateError].description("Reservation status could not be changed."))
+        )
+      )
+      .put

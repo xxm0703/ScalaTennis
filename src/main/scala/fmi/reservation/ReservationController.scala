@@ -2,9 +2,15 @@ package fmi.reservation
 
 import cats.effect.IO
 import cats.syntax.all.*
-import fmi.{ConflictDescription, ResourceNotFound}
+import fmi.{
+  ConflictDescription,
+  OperationNotAllowed,
+  ReservationDeletionError,
+  ReservationStatusUpdateError,
+  ResourceNotFound
+}
 import fmi.club.CourtId
-import fmi.user.UserId
+import fmi.user.{UserId, UserRole}
 import fmi.user.authentication.{AuthenticatedUser, AuthenticationService}
 import fmi.utils.CirceUtils
 import io.circe.Codec
@@ -32,16 +38,31 @@ class ReservationController(reservationService: ReservationService)(authenticati
         .map(_.asRight)
     }
 
+  // TODO Only admin, club owner or user who created the reservation can delete it
   private val deleteReservation = ReservationEndpoints.deleteReservationEndpoint
     .authenticate()
     .serverLogic { user => reservationId =>
-      reservationService
-        .deleteReservationLogic(reservationId)
-        .map(_.leftMap(_ => ResourceNotFound("No reservation with given id was found")))
+      if user.role.equals(UserRole.Admin) then
+        reservationService
+          .deleteReservationLogic(reservationId)
+          .map(_.leftMap(_ => ReservationDeletionError("Reservation could not be deleted")))
+      else IO.pure(Left(ReservationDeletionError("User is not authorized to delete reservations")))
     }
 
+  // TODO only allow this if the user is an admin, the owner or the user who made the reservation
+  private val updateReservationStatus = ReservationEndpoints.changeReservationStatusEndpoint
+    .authenticate()
+    .serverLogic { user => reservationStatusChangeForm =>
+      if user.role.equals(UserRole.Admin) then
+        reservationService
+          .updateReservationStatus(reservationStatusChangeForm)
+          .map(_.leftMap(_ => ReservationStatusUpdateError("Reservation status could npt be changed")))
+      else IO.pure(Left(ReservationStatusUpdateError("User is not authorized to change reservation status")))
+    }
+  
   val endpoints: List[ServerEndpoint[Any, IO]] = List(
     placeReservation,
     getAllReservationsPerCourt,
-    deleteReservation
+    deleteReservation,
+    updateReservationStatus
   )

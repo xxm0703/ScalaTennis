@@ -1,5 +1,6 @@
 package fmi.user
 
+import doobie.Meta
 import fmi.utils.CirceUtils
 import io.circe.Codec
 import io.circe.derivation.{Configuration, ConfiguredEnumCodec}
@@ -24,4 +25,5 @@ enum UserRole derives ConfiguredEnumCodec:
   case Admin, Owner, Player
 
 object UserRole:
+  given Meta[UserRole] = Meta[String].imap[UserRole](x => UserRole.valueOf(x.capitalize))(_.toString.toLowerCase)
   given Schema[UserRole] = Schema.derivedEnumeration()
