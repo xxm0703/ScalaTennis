@@ -3,7 +3,6 @@ package fmi.reservation
 import cats.data.EitherT
 import cats.effect.IO
 import cats.syntax.all.*
-import doobie.implicits.*
 import fmi.ResourceNotFound
 import fmi.infrastructure.db.DoobieDatabase.DbTransactor
 import fmi.club.CourtId
@@ -14,8 +13,8 @@ import io.circe.Codec
 import io.circe.derivation.ConfiguredCodec
 import sttp.tapir.Schema
 
-import java.security.KeyStore.TrustedCertificateEntry
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 
 class ReservationService(dbTransactor: DbTransactor)(reservationDao: ReservationDao):
   def placeReservation(userId: UserId, reservationForm: ReservationForm)
@@ -35,12 +34,16 @@ class ReservationService(dbTransactor: DbTransactor)(reservationDao: Reservation
     maybeReservation <- transactReservation(reservation)
   yield maybeReservation
 
+  // Each reservation lasts an hour
   private def isSlotAlreadyTaken(courtId: CourtId, startTime: Instant): IO[Boolean] =
-    reservationDao.retrieveReservationAtSlot(courtId, startTime).map {
-      case Some(_) => true
-      case None => false
+    val endTime = startTime.plus(1, ChronoUnit.HOURS)
+    reservationDao.retrieveReservationsForCourt(courtId).map { reservations =>
+      reservations.exists { reservation =>
+        val existingStart = reservation.startTime
+        val existingEnd = reservation.startTime.plus(1, ChronoUnit.HOURS)
+        startTime.isBefore(existingEnd) && endTime.isAfter(existingStart)
+      }
     }
-
   private def transactReservation(
     reservation: Reservation
   ): IO[Either[ReservationSlotAlreadyTaken, Reservation]] =
