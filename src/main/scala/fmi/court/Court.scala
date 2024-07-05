@@ -1,6 +1,7 @@
-package fmi.club
+package fmi.court
 
 import doobie.Meta
+import fmi.club.ClubId
 import fmi.user.UserId
 import fmi.utils.CirceUtils
 import io.circe.Codec

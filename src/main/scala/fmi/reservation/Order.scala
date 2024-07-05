@@ -1,7 +1,7 @@
 package fmi.reservation
 
 import cats.effect.IO
-import fmi.club.CourtId
+import fmi.court.CourtId
 import fmi.user.UserId
 import fmi.utils.CirceUtils
 import io.circe.Codec

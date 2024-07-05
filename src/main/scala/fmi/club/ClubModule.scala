@@ -7,18 +7,18 @@ import fmi.user.authentication.AuthenticationService
 import sttp.tapir.server.ServerEndpoint
 
 case class ClubModule(
-  courtDao: CourtDao,
+  clubDao: ClubDao,
   endpoints: List[ServerEndpoint[Any, IO]]
 )
 
 object ClubModule:
   def apply(dbTransactor: DbTransactor, authenticationService: AuthenticationService): Resource[IO, ClubModule] =
-    val courtDao = new CourtDao(dbTransactor)
-    val clubController = new ClubController(courtDao)(authenticationService)
+    val clubDao = new ClubDao(dbTransactor)
+    val clubController = new ClubController(clubDao)(authenticationService)
 
     Resource.pure(
       ClubModule(
-        courtDao,
+        clubDao,
         clubController.endpoints
       )
     )

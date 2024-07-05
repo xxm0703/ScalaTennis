@@ -15,15 +15,7 @@ object ClubEndpoints:
   import TennisAppEndpoints.*
 
   val clubsBaseEndpoint = v1BaseEndpoint.in("clubs")
-  val courtsBaseEndpoint = clubsBaseEndpoint.in(path[ClubId].name("club-id")).in("courts")
-  val availabilityBaseEndpoint = v1BaseEndpoint.in("availability")
-
-  val getCourtEndpoint = courtsBaseEndpoint
-    .in(path[CourtId].name("court-id"))
-    .out(jsonBody[Court])
-    .errorOut(statusCode(NotFound).and(jsonBody[ResourceNotFound]))
-    .get
-
+  
   val putClubEndpoint =
     clubsBaseEndpoint.secure
       .in(jsonBody[ClubDto])
@@ -34,9 +26,4 @@ object ClubEndpoints:
       .in(path[ClubId].name("club-id"))
       .in("transfer")
       .in(jsonBody[UserId])
-      .put
-
-  val putCourtEndpoint =
-    courtsBaseEndpoint.secure
-      .in(jsonBody[CourtDto])
       .put
