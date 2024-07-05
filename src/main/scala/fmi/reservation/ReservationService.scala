@@ -16,7 +16,11 @@ import sttp.tapir.Schema
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 
-class ReservationService(dbTransactor: DbTransactor)(reservationDao: ReservationDao):
+class ReservationService(dbTransactor: DbTransactor)
+                        (reservationDao: ReservationDao):
+
+
+  
   def getReservationById(reservationId: ReservationId): IO[Option[Reservation]] =
     reservationDao.retrieveReservation(reservationId)
   

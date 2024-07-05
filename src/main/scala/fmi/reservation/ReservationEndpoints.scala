@@ -1,16 +1,9 @@
 package fmi.reservation
 
 import fmi.club.CourtId
-import fmi.{
-  AuthenticationError,
-  ConflictDescription,
-  ReservationDeletionError,
-  ReservationStatusUpdateError,
-  ResourceNotFound,
-  TennisAppEndpoints
-}
-import sttp.model.StatusCode.{BadRequest, Conflict, Forbidden, NoContent, NotFound, Unauthorized}
-import sttp.tapir.{oneOfVariant, *}
+import fmi.{AuthenticationError, ConflictDescription, ReservationDeletionError, ReservationStatusUpdateError, ResourceNotFound, TennisAppEndpoints}
+import sttp.model.StatusCode.{BadRequest, Conflict, NoContent, NotFound}
+import sttp.tapir.{oneOfVariant, statusCode, *}
 import sttp.tapir.json.circe.*
 case class ErrorResponse(message: String)
 
@@ -18,6 +11,16 @@ object ReservationEndpoints:
   import TennisAppEndpoints.*
 
   private val reservationsBaseEndpoint = v1BaseEndpoint.in("reservations")
+
+  val retrieveReservationEndpoint
+    : Endpoint[String, ReservationId, ResourceNotFound | AuthenticationError, Reservation, Any] =
+      reservationsBaseEndpoint.secure
+      .in(path[ReservationId].name("reservation-id"))
+      .out(jsonBody[Reservation])
+      .errorOutVariantPrepend[AuthenticationError | ResourceNotFound](
+        oneOfVariant(statusCode(NotFound).and(jsonBody[ResourceNotFound]))
+      )
+      .get
 
   val placeReservationEndpoint
     : Endpoint[String, ReservationForm, AuthenticationError | ConflictDescription, Reservation, Any] =
@@ -32,6 +35,7 @@ object ReservationEndpoints:
   val getAllReservationsForCourtEndpoint
     : Endpoint[String, CourtId, ResourceNotFound | AuthenticationError, List[Reservation], Any] =
     reservationsBaseEndpoint.secure
+      .in("court")
       .in(path[CourtId].name("court-id"))
       .out(jsonBody[List[Reservation]])
       .errorOutVariantPrepend[AuthenticationError | ResourceNotFound](
@@ -40,7 +44,7 @@ object ReservationEndpoints:
       .get
 
   val deleteReservationEndpoint
-    : Endpoint[String, ReservationId, (AuthenticationError | ReservationDeletionError), Unit, Any] =
+    : Endpoint[String, ReservationId,AuthenticationError | ReservationDeletionError, Unit, Any] =
     reservationsBaseEndpoint.secure
       .in(path[ReservationId].name("reservation-id"))
       .out(statusCode(NoContent))

@@ -15,7 +15,7 @@ class ReservationDao(dbTransactor: DbTransactor):
 
   def retrieveReservation(id: ReservationId): IO[Option[Reservation]] =
     sql"""
-    SELECT user_id, court_id, start_time, placing_timestamp, reservation_status
+    SELECT *
     FROM reservation
     WHERE id = $id
     """
@@ -75,7 +75,7 @@ class ReservationDao(dbTransactor: DbTransactor):
     """.update.run
 
     val retrieveQuery = sql"""
-      SELECT id, user_id, court_id, start_time, placing_timestamp, reservation_status
+      SELECT *
       FROM reservation
       WHERE id = $id
     """.query[Reservation].option
