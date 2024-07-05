@@ -4,14 +4,9 @@ import cats.data.EitherT
 import cats.effect.IO
 import cats.syntax.all.*
 import doobie.implicits.*
+import fmi.ResourceNotFound
 import fmi.infrastructure.db.DoobieDatabase.DbTransactor
-import fmi.club.{
-  ClubAdjustment,
-  CourtAvailabilityDao,
-  CourtId,
-  NotEnoughAvailabilityAvailable,
-  NotEnoughAvailabilityAvailableException
-}
+import fmi.club.{ClubAdjustment, CourtAvailabilityDao, CourtId, NotEnoughAvailabilityAvailable, NotEnoughAvailabilityAvailableException}
 import fmi.reservation.ReservationForm
 import fmi.user.UserId
 import fmi.utils.DerivationConfiguration.given
@@ -62,6 +57,14 @@ class ReservationService(dbTransactor: DbTransactor)(reservationDao: Reservation
   def getAllReservationsForCourt(courtId: CourtId): IO[List[Reservation]] =
     reservationDao.retrieveReservationsForCourt(courtId)
 
+  def deleteReservationLogic(reservationId: ReservationId): IO[Either[ResourceNotFound, Unit]] = {
+    reservationDao.deleteReservation(reservationId).flatMap {
+      case Right(_) => IO.pure(Right(()))
+      case Left(_) => IO.pure(Left(ResourceNotFound("No such reservation was found")))
+    }
+  }
+
 sealed trait ReservationError derives ConfiguredCodec, Schema
 case class ReservationAlreadyExists(reservation: ReservationId) extends ReservationError
 case class ReservationSlotAlreadyTaken(court: CourtId, startTime: Instant) extends ReservationError
+case class ReservationNotFound(reservationId: ReservationId) extends ReservationError

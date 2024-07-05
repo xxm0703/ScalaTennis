@@ -1,10 +1,19 @@
 package fmi.reservation
 
 import fmi.club.CourtId
-import fmi.{AuthenticationError, ConflictDescription, ResourceNotFound, TennisAppEndpoints}
-import sttp.model.StatusCode.{Conflict, NotFound}
-import sttp.tapir.*
+import fmi.{
+  AuthenticationError,
+  ConflictDescription,
+  HttpError,
+  ResourceNotFound,
+  TennisAppEndpoints,
+  BadRequestDescription
+}
+import sttp.model.StatusCode.{BadRequest, Conflict, NoContent, NotFound}
+import sttp.tapir.{oneOfVariant, *}
 import sttp.tapir.json.circe.*
+
+case class ErrorResponse(message: String)
 
 object ReservationEndpoints:
   import TennisAppEndpoints.*
@@ -30,3 +39,12 @@ object ReservationEndpoints:
         oneOfVariant(statusCode(NotFound).and(jsonBody[ResourceNotFound]))
       )
       .get
+
+  val deleteReservationEndpoint: Endpoint[String, ReservationId, (AuthenticationError | ResourceNotFound), Unit, Any] =
+    reservationsBaseEndpoint.secure
+      .in(path[ReservationId].name("reservation-id"))
+      .out(statusCode(NoContent))
+      .errorOutVariantPrepend[AuthenticationError | ResourceNotFound](
+        oneOfVariant(statusCode(NotFound).and(jsonBody[ResourceNotFound].description("No such reservation was found")))
+      )
+      .delete

@@ -5,8 +5,8 @@ import fmi.club.{CourtAvailabilityAdjustment, CourtId}
 import fmi.user.UserId
 import fmi.utils.CirceUtils
 import io.circe.Codec
-import sttp.tapir.{Schema, SchemaType}
-
+import sttp.tapir.{Schema, SchemaType,CodecFormat}
+import sttp.tapir
 import java.time.Instant
 import java.util.UUID
 
@@ -25,6 +25,4 @@ object ReservationId:
 
   given Codec[ReservationId] = CirceUtils.unwrappedCodec(ReservationId.apply)(_.id)
   given Schema[ReservationId] = Schema(SchemaType.SString())
-
-case class CourtAvailability(court: CourtId, quantity: Int) derives Codec, Schema:
-  def toCourtAvailabilityAdjustment: CourtAvailabilityAdjustment = CourtAvailabilityAdjustment(court, -quantity)
+  given tapir.Codec[String, ReservationId, CodecFormat.TextPlain] = tapir.Codec.string.map(ReservationId.apply)(_.id)

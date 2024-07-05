@@ -54,9 +54,14 @@ class ReservationDao(dbTransactor: DbTransactor):
       .to[List]
       .transact(dbTransactor)
 
-  def deleteReservation(id: ReservationId): IO[Unit] =
+  def deleteReservation(id: ReservationId): IO[Either[ReservationNotFound, Unit]] = {
     sql"""
-       DELETE FROM reservation
-       WHERE id = $id
-       """.update.run.void
+         DELETE FROM reservation
+         WHERE id = $id
+       """.update.run
       .transact(dbTransactor)
+      .flatMap {
+        case 0 => IO.pure(Left(ReservationNotFound(id)))
+        case _ => IO.pure(Right(()))
+      }
+  }

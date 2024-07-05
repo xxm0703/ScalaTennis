@@ -2,7 +2,7 @@ package fmi.reservation
 
 import cats.effect.IO
 import cats.syntax.all.*
-import fmi.ConflictDescription
+import fmi.{ConflictDescription, ResourceNotFound}
 import fmi.club.CourtId
 import fmi.user.UserId
 import fmi.user.authentication.{AuthenticatedUser, AuthenticationService}
@@ -32,7 +32,16 @@ class ReservationController(reservationService: ReservationService)(authenticati
         .map(_.asRight)
     }
 
+  private val deleteReservation = ReservationEndpoints.deleteReservationEndpoint
+    .authenticate()
+    .serverLogic { user => reservationId =>
+      reservationService
+        .deleteReservationLogic(reservationId)
+        .map(_.leftMap(_ => ResourceNotFound("No reservation with given id was found")))
+    }
+
   val endpoints: List[ServerEndpoint[Any, IO]] = List(
     placeReservation,
-    getAllReservationsPerCourt
+    getAllReservationsPerCourt,
+    deleteReservation
   )
