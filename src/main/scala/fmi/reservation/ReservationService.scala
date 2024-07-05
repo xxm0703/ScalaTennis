@@ -8,6 +8,7 @@ import fmi.ResourceNotFound
 import fmi.infrastructure.db.DoobieDatabase.DbTransactor
 import fmi.club.{ClubAdjustment, CourtAvailabilityDao, CourtId, NotEnoughAvailabilityAvailable, NotEnoughAvailabilityAvailableException}
 import fmi.reservation.ReservationForm
+import fmi.reservation.ReservationStatus.placed
 import fmi.user.UserId
 import fmi.utils.DerivationConfiguration.given
 import io.circe.Codec
@@ -28,7 +29,8 @@ class ReservationService(dbTransactor: DbTransactor)(reservationDao: Reservation
       userId,
       reservationForm.courtId,
       reservationForm.startTime,
-      placingTimestamp
+      placingTimestamp,
+      placed
     )
 
     maybeReservation <- transactReservation(reservation)

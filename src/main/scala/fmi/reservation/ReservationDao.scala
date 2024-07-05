@@ -15,7 +15,7 @@ class ReservationDao(dbTransactor: DbTransactor):
 
   def retrieveReservation(id: ReservationId): IO[Option[Reservation]] =
     sql"""
-    SELECT user_id, court_id, start_time, placing_timestamp
+    SELECT user_id, court_id, start_time, placing_timestamp, reservation_status
     FROM reservation
     WHERE id = $id
     """
@@ -25,8 +25,8 @@ class ReservationDao(dbTransactor: DbTransactor):
 
   def createReservation(reservation: Reservation): IO[Either[ReservationAlreadyExists, Reservation]] =
     sql"""
-         INSERT INTO reservation (id, user_id, court_id, start_time, placing_timestamp)
-         VALUES (${reservation.reservationId}, ${reservation.user}, ${reservation.court}, ${reservation.startTime}, ${reservation.placingTimestamp})
+         INSERT INTO reservation (id, user_id, court_id, start_time, placing_timestamp, reservation_status)
+         VALUES (${reservation.reservationId}, ${reservation.user}, ${reservation.court}, ${reservation.startTime}, ${reservation.placingTimestamp}, "placed")
        """.update.run
       .as(reservation)
       .attemptSomeSqlState { case sqlstate.class23.UNIQUE_VIOLATION =>
@@ -36,7 +36,7 @@ class ReservationDao(dbTransactor: DbTransactor):
 
   def retrieveReservationAtSlot(court: CourtId, startTime: Instant): IO[Option[Reservation]] =
     sql"""
-            SELECT id, user_id, court_id, start_time, placing_timestamp 
+            SELECT id, user_id, court_id, start_time, placing_timestamp, reservation_status
             FROM reservation
             WHERE court_id = $court AND start_time = $startTime 
           """

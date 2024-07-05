@@ -4,10 +4,8 @@ import fmi.club.CourtId
 import fmi.{
   AuthenticationError,
   ConflictDescription,
-  HttpError,
   ResourceNotFound,
   TennisAppEndpoints,
-  BadRequestDescription
 }
 import sttp.model.StatusCode.{BadRequest, Conflict, NoContent, NotFound}
 import sttp.tapir.{oneOfVariant, *}
