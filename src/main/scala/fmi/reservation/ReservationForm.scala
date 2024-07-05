@@ -1,6 +1,6 @@
 package fmi.reservation
 
-import fmi.club.CourtId
+import fmi.court.CourtId
 import io.circe.Codec
 import sttp.tapir.Schema
 

@@ -5,7 +5,7 @@ import cats.effect.IO
 import cats.syntax.all.*
 import fmi.ResourceNotFound
 import fmi.infrastructure.db.DoobieDatabase.DbTransactor
-import fmi.club.CourtId
+import fmi.court.CourtId
 import fmi.reservation.ReservationStatus.Placed
 import fmi.user.UserId
 import fmi.utils.DerivationConfiguration.given

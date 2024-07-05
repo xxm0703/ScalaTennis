@@ -7,7 +7,7 @@ import doobie.implicits.*
 import doobie.postgres.implicits.*
 import fmi.infrastructure.db.DoobieDatabase.DbTransactor
 import doobie.postgres.sqlstate
-import fmi.club.CourtId
+import fmi.court.CourtId
 
 import java.time.Instant
 

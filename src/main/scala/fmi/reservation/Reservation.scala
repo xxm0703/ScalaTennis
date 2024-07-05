@@ -2,7 +2,7 @@ package fmi.reservation
 
 import cats.effect.IO
 import doobie.Meta
-import fmi.club.{CourtAvailabilityAdjustment, CourtId}
+import fmi.court.CourtId
 import fmi.user.UserId
 import fmi.utils.CirceUtils
 import io.circe.Codec
@@ -12,7 +12,6 @@ import sttp.tapir
 
 import java.time.Instant
 import java.util.UUID
-
 import fmi.utils.DerivationConfiguration.given_Configuration
 
 case class Reservation(

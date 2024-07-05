@@ -3,7 +3,7 @@ package fmi.reservation
 import cats.effect.IO
 import cats.syntax.all.*
 import fmi.{ConflictDescription, ReservationDeletionError, ReservationStatusUpdateError, ResourceNotFound}
-import fmi.club.CourtId
+import fmi.court.CourtId
 import fmi.user.UserRole
 import fmi.user.authentication.AuthenticationService
 import org.slf4j.{Logger, LoggerFactory}

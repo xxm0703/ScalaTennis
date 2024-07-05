@@ -1,6 +1,6 @@
 package fmi.reservation
 
-import fmi.club.CourtId
+import fmi.court.CourtId
 import fmi.{AuthenticationError, ConflictDescription, ReservationDeletionError, ReservationStatusUpdateError, ResourceNotFound, TennisAppEndpoints}
 import sttp.model.StatusCode.{BadRequest, Conflict, NoContent, NotFound}
 import sttp.tapir.{oneOfVariant, statusCode, *}
