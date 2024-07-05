@@ -3,7 +3,7 @@ package fmi.reservation
 import cats.effect.IO
 import cats.syntax.all.*
 import fmi.ConflictDescription
-import fmi.club.CourtId
+import fmi.court.CourtId
 import fmi.user.UserId
 import fmi.user.authentication.{AuthenticatedUser, AuthenticationService}
 import fmi.utils.CirceUtils
