@@ -8,6 +8,7 @@ import fmi.infrastructure.TokenSignatureService
 import fmi.infrastructure.db.DbModule
 import fmi.club.ClubModule
 import fmi.config.TennisAppConfig
+import fmi.reservation.ReservationModule
 import fmi.user.UsersModule
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.implicits.*
@@ -28,9 +29,10 @@ object TennisApp extends IOApp.Simple:
 
     usersModule <- UsersModule(dbModule.dbTransactor, tokenSignatureService)
     clubModule <- ClubModule(dbModule.dbTransactor, usersModule.authenticationService)
+    reservationModule <- ReservationModule(dbModule.dbTransactor, usersModule.authenticationService)
 
-    apiEndpoints = usersModule.endpoints ::: clubModule.endpoints // ::: reservationModule.endpoints
-    docEndpoints = SwaggerInterpreter().fromServerEndpoints[IO](apiEndpoints, "library-app", "1.0.0")
+    apiEndpoints = usersModule.endpoints ::: clubModule.endpoints ::: reservationModule.endpoints
+    docEndpoints = SwaggerInterpreter().fromServerEndpoints[IO](apiEndpoints, "tennis-app", "1.0.0")
 
     routes = Http4sServerInterpreter[IO]().toRoutes(apiEndpoints ::: docEndpoints).orNotFound
 

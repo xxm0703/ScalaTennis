@@ -31,5 +31,5 @@ case class CourtDto(id: Option[CourtId], name: String, surface: Surface) derives
 enum Surface derives ConfiguredEnumCodec:
   case Clay, Grass, Hard
 object Surface:
-  given Meta[Surface] = Meta[String].imap[Surface](s => Surface.valueOf(s.capitalize))(_.toString)
+  given Meta[Surface] = Meta[String].imap[Surface](s => Surface.valueOf(s.capitalize))(_.toString.toLowerCase)
   given Schema[Surface] = Schema.derivedEnumeration()
