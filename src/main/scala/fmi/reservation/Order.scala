@@ -1,7 +1,7 @@
-package fmi.tennis
+package fmi.reservation
 
 import cats.effect.IO
-import fmi.club.{CourtId, CourtAvailabilityAdjustment}
+import fmi.club.CourtId
 import fmi.user.UserId
 import fmi.utils.CirceUtils
 import io.circe.Codec
@@ -21,5 +21,4 @@ object OrderId:
   given Codec[OrderId] = CirceUtils.unwrappedCodec(OrderId.apply)(_.id)
   given Schema[OrderId] = Schema(SchemaType.SString())
 
-case class OrderLine(court: CourtId, quantity: Int) derives Codec, Schema:
-  def toCourtAvailabilityAdjustment = CourtAvailabilityAdjustment(court, -quantity)
+case class OrderLine(court: CourtId, quantity: Int) derives Codec, Schema

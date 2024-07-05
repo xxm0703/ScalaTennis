@@ -1,4 +1,4 @@
-package fmi.tennis
+package fmi.reservation
 
 import cats.effect.IO
 import cats.syntax.all.*
@@ -16,7 +16,7 @@ import sttp.tapir.server.ServerEndpoint
 class TennisController(orderService: OrderService)(authenticationService: AuthenticationService):
   import authenticationService.authenticate
 
-  val placeOrders = TennisEndpoints.placeOrderEndpoint
+  val placeReservation = TennisEndpoints.placeOrderEndpoint
     .authenticate()
     .serverLogic { user => tennisCart =>
       orderService
@@ -24,4 +24,4 @@ class TennisController(orderService: OrderService)(authenticationService: Authen
         .map(_.leftMap(_ => ConflictDescription("Not enough availability available")))
     }
 
-  val endpoints: List[ServerEndpoint[Any, IO]] = List(placeOrders)
+  val endpoints: List[ServerEndpoint[Any, IO]] = List(placeReservation)

@@ -1,11 +1,9 @@
-package fmi.tennis
+package fmi.reservation
 
 import cats.effect.IO
 import cats.effect.kernel.Resource
 import fmi.infrastructure.db.DoobieDatabase.DbTransactor
-import fmi.club.CourtAvailabilityDao
-import fmi.user.authentication.{AuthenticatedUser, AuthenticationService}
-import org.http4s.AuthedRoutes
+import fmi.user.authentication.AuthenticationService
 import sttp.tapir.server.ServerEndpoint
 
 case class TennisModule(
@@ -17,11 +15,9 @@ case class TennisModule(
 object TennisModule:
   def apply(
     dbTransactor: DbTransactor,
-    authenticationService: AuthenticationService,
-    courtAvailabilityDao: CourtAvailabilityDao
-  ): Resource[IO, TennisModule] =
+    authenticationService: AuthenticationService): Resource[IO, TennisModule] =
     val orderDao = new OrderDao(dbTransactor)
-    val orderService = new OrderService(dbTransactor)(courtAvailabilityDao, orderDao)
+    val orderService = new OrderService(dbTransactor)(orderDao)
     val shippingController = new TennisController(orderService)(authenticationService)
 
     Resource.pure(
