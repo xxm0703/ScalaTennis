@@ -17,6 +17,9 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 
 class ReservationService(dbTransactor: DbTransactor)(reservationDao: ReservationDao):
+  def getReservationById(reservationId: ReservationId): IO[Option[Reservation]] =
+    reservationDao.retrieveReservation(reservationId)
+  
   def placeReservation(userId: UserId, reservationForm: ReservationForm)
     : IO[Either[ReservationSlotAlreadyTaken, Reservation]] = for
     reservationId <- ReservationId.generate
