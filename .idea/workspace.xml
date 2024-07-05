@@ -1,17 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="AutoImportSettings">
-    <option name="autoReloadType" value="SELECTIVE" />
+    <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ea93fe2c-b321-4844-85b5-2b4d4ac4913b" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/scala/fmi/club/Club.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/fmi/club/Club.scala" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/scala/fmi/club/ClubController.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/fmi/club/ClubController.scala" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/scala/fmi/club/ClubEndpoints.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/fmi/club/ClubEndpoints.scala" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/scala/fmi/club/ClubModule.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/fmi/club/ClubModule.scala" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/scala/fmi/club/Court.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/fmi/club/Court.scala" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/scala/fmi/club/CourtAvailabilityDao.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/fmi/club/CourtAvailabilityDao.scala" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/scala/fmi/club/CourtDao.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/fmi/club/CourtDao.scala" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/scala/fmi/reservation/Order.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/fmi/reservation/Order.scala" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/scala/fmi/reservation/OrderDao.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/fmi/reservation/OrderDao.scala" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/scala/fmi/reservation/OrderService.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/fmi/reservation/OrderService.scala" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/scala/fmi/reservation/ShoppingCart.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/fmi/reservation/ShoppingCart.scala" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/scala/fmi/reservation/ShoppingController.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/fmi/reservation/TennisController.scala" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/scala/fmi/reservation/ShoppingEndpoints.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/fmi/reservation/ShoppingEndpoints.scala" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/scala/fmi/reservation/ShoppingModule.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/fmi/reservation/TennisModule.scala" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/scala/fmi/user/AuthenticationService.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/fmi/user/AuthenticationService.scala" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="CompilerWorkspaceConfiguration">
+    <option name="MAKE_PROJECT_ON_SAVE" value="true" />
+    <option name="PARALLEL_COMPILATION" value="true" />
   </component>
   <component name="ExternalProjectsData">
     <projectState path="$PROJECT_DIR$">
@@ -56,10 +74,10 @@
     "Application.TennisApp.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "git-widget-placeholder": "master",
+    "git-widget-placeholder": "courts-creation",
     "jdk.selected.JAVA_MODULE": "openjdk-22",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "/home/martinjordanov/IdeaProjects/ScalaTennis/scala-tennis",
+    "last_opened_file_path": "/home/martinjordanov/IdeaProjects/ScalaTennis/scala-tennis/src/main/resources/db-migrations",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -68,10 +86,21 @@
     "project.structure.last.edited": "Modules",
     "project.structure.proportion": "0.15",
     "project.structure.side.proportion": "0.2",
-    "settings.editor.selected.configurable": "advanced.settings",
+    "settings.build.tools.auto.reload": "ALL",
+    "settings.editor.selected.configurable": "project.propCompiler",
     "vue.rearranger.settings.migration": "true"
+  },
+  "keyToStringList": {
+    "com.intellij.ide.scratch.LRUPopupBuilder$1/SQL Dialect": [
+      "MySQL"
+    ]
   }
 }]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src/main/resources/db-migrations" />
+    </key>
+  </component>
   <component name="RunManager">
     <configuration name="TennisApp" type="Application" factoryName="Application" temporary="true">
       <option name="ALTERNATIVE_JRE_PATH" value="openjdk-22" />
@@ -109,7 +138,7 @@
       <workItem from="1719950825301" duration="6444000" />
       <workItem from="1719992854538" duration="57000" />
       <workItem from="1720100546239" duration="975000" />
-      <workItem from="1720101595186" duration="1414000" />
+      <workItem from="1720101595186" duration="6981000" />
     </task>
     <servers />
   </component>

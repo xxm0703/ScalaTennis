@@ -1,4 +1,4 @@
-package fmi.tennis
+package fmi.reservation
 
 import fmi.{AuthenticationError, ConflictDescription, ResourceNotFound, TennisAppEndpoints}
 import sttp.model.StatusCode.{Conflict, NotFound}

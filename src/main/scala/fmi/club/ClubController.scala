@@ -1,41 +1,50 @@
 package fmi.club
 import cats.effect.IO
 import cats.syntax.all.*
-import fmi.user.authentication.AuthenticationService
-import fmi.{ConflictDescription, ResourceNotFound}
+import fmi.user.authentication.{AuthenticatedUser, AuthenticationService}
+import fmi.{ConflictDescription, ForbiddenResource, ResourceNotFound}
 import sttp.tapir.server.ServerEndpoint
 
+import scala.language.postfixOps
+
 class ClubController(
-  courtDao: CourtDao,
-  courtAvailabilityDao: CourtAvailabilityDao
+  courtDao: CourtDao
 )(
   authenticationService: AuthenticationService
 ):
-  import authenticationService.authenticateAdmin
+  import authenticationService.*
 
-  val getCourt = ClubEndpoints.getCourtEndpoint.serverLogic: courtId =>
+  val getCourt = ClubEndpoints.getCourtEndpoint.serverLogic: (clubId, courtId) =>
     courtDao
       .retrieveCourt(courtId)
       .map(_.toRight(ResourceNotFound(s"Court $courtId was not found")))
 
-  val putCourt = ClubEndpoints.putCourtEndpoint.authenticateAdmin
-    .serverLogicSuccess(user => courtDao.addCourt)
+  val putCourt = ClubEndpoints.putCourtEndpoint.authenticateOwner
+    .serverLogic { user => (clubId, courtDto) =>
+      val court = Court.fromDto(courtDto, clubId)
+      courtDao
+        .upsertCourtForOwner(user)(clubId, court)
+        .map(_.leftMap(ForbiddenResource.apply))
+    }
 
-  val getAllAvailability = ClubEndpoints.getAllAvailabilityEndpoint.serverLogicSuccess: _ =>
-    courtAvailabilityDao.retrieveAllAvailableAvailability
-
-  val adjustAvailability = ClubEndpoints.adjustAvailabilityEndpoint.authenticateAdmin
-    .serverLogic { user => adjustment =>
-      courtAvailabilityDao
-        .applyClubAdjustment(adjustment)
-        .map:
-          case SuccessfulAdjustment => ().asRight
-          case NotEnoughAvailabilityAvailable => ConflictDescription("Not enough availability available").asLeft
+  val putClub = ClubEndpoints.putClubEndpoint.authenticateOwner
+    .serverLogic { user => clubDto =>
+      val club = Club.fromDto(user.id, clubDto)
+      courtDao
+        .upsertClub(user, club)
+        .map(_.leftMap(ForbiddenResource.apply))
+    }
+  
+  val transferClub = ClubEndpoints.transferClubEndpoint.authenticateOwner
+    .serverLogic { user => (clubId, newOwner) =>
+      courtDao
+        .transferClub(user, clubId, newOwner)
+        .map(_.leftMap(ForbiddenResource.apply))
     }
 
   val endpoints: List[ServerEndpoint[Any, IO]] = List(
     getCourt,
     putCourt,
-    getAllAvailability,
-    adjustAvailability
+    putClub,
+    transferClub
   )

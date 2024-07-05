@@ -1,4 +1,4 @@
-package fmi.tennis
+package fmi.reservation
 
 import cats.syntax.all.*
 import doobie.*

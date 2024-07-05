@@ -35,7 +35,7 @@ class AuthenticationService(usersDao: UsersDao, tokenSignatureService: TokenSign
 
     def authenticateOwner: PartialServerEndpoint[String, AuthenticatedUser, I, E, O, R, IO] =
       securityEndpoint.authenticate(Some(UserRole.Owner))
-      
+
   def sessionWithUser(userId: UserId): IO[CookieValueWithMeta] =
     tokenSignatureService.sign(userId.email).map(CookieValueWithMeta.unsafeApply(_, path = Some("/")))
 
