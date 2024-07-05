@@ -7,7 +7,7 @@ import doobie.implicits.*
 import doobie.postgres.implicits.*
 import fmi.infrastructure.db.DoobieDatabase.DbTransactor
 import doobie.postgres.sqlstate
-import fmi.court.CourtId
+import fmi.court.{CourtId, Court}
 
 import java.time.Instant
 
@@ -91,3 +91,28 @@ class ReservationDao(dbTransactor: DbTransactor):
             ) // This case is unlikely but handles the case where the reservation is not found after update.
         }
     }
+
+  def retrieveCourtById(courtId: CourtId): IO[Option[Court]] =
+    sql"""
+      SELECT c.id AS court_id, c.name AS court_name, c.surface AS court_surface, c.club_id AS club_id
+      FROM reservation r
+      JOIN court c ON r.court_id = c.id
+      WHERE r.court_id = $courtId
+      """
+      .query[Court]
+      .option
+      .transact(dbTransactor)
+  
+  
+  def retrieveCourtForReservation(reservationId: ReservationId): IO[Option[Court]] =
+    sql"""
+      SELECT c.id AS court_id, c.name AS court_name, c.surface AS court_surface, c.club_id AS club_id,
+             cl.name AS club_name, cl.description AS club_description, cl.owner AS club_owner
+      FROM reservation r
+      JOIN court c ON r.court_id = c.id
+      JOIN club cl ON c.club_id = cl.id
+      WHERE r.id = $reservationId
+      """
+      .query[Court]
+      .option
+      .transact(dbTransactor)

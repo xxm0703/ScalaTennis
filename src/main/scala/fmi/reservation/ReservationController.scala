@@ -46,8 +46,13 @@ class ReservationController(
     .authenticate()
     .serverLogic { user => courtId =>
       reservationService
-        .getAllReservationsForCourt(courtId)
-        .map(_.asRight)
+        .retrieveCourtById(courtId)
+        .flatMap {
+          case Some(_) =>
+            reservationService.getAllReservationsForCourt(courtId).map(_.asRight)
+          case None =>
+            IO.pure(Left(ResourceNotFound(s"Court with id $courtId not found")))
+        }
     }
 
   private val deleteReservation = ReservationEndpoints.deleteReservationEndpoint
@@ -94,7 +99,7 @@ class ReservationController(
               reservationService
                 .updateReservationStatus(reservationStatusChangeForm)
                 .map(_.leftMap(_ => ReservationStatusUpdateError("Reservation status could not be changed")))
-          // else IO.pure(Left(ReservationStatusUpdateError("User is not authorized to change reservation status")))
+        // else IO.pure(Left(ReservationStatusUpdateError("User is not authorized to change reservation status")))
         case None => IO.pure(Left(ReservationStatusUpdateError("No such reservation")))
       }
     }
