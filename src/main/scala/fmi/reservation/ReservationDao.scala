@@ -94,16 +94,14 @@ class ReservationDao(dbTransactor: DbTransactor):
 
   def retrieveCourtById(courtId: CourtId): IO[Option[Court]] =
     sql"""
-      SELECT c.id AS court_id, c.name AS court_name, c.surface AS court_surface, c.club_id AS club_id
-      FROM reservation r
-      JOIN court c ON r.court_id = c.id
-      WHERE r.court_id = $courtId
-      """
+      SELECT *
+      FROM court
+      WHERE id = $courtId
+    """
       .query[Court]
       .option
       .transact(dbTransactor)
-  
-  
+
   def retrieveCourtForReservation(reservationId: ReservationId): IO[Option[Court]] =
     sql"""
       SELECT c.id AS court_id, c.name AS court_name, c.surface AS court_surface, c.club_id AS club_id,

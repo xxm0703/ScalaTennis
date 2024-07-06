@@ -16,20 +16,18 @@ class ReservationController(
 ):
   import authenticationService.authenticate
 
-  private val logger: Logger = LoggerFactory.getLogger(this.getClass)
-
   private val getReservation = ReservationEndpoints.retrieveReservationEndpoint
     .authenticate()
     .serverLogic { user => reservationId =>
-      logger.debug(s"Received request to get reservation with id: $reservationId")
+      println(s"Received request to get reservation with id: $reservationId")
       reservationService
         .getReservationById(reservationId)
         .map {
           case Some(reservation) =>
-            logger.debug(s"Found reservation: ${reservation.toString}")
+            println(s"Found reservation: ${reservation.toString}")
             Right(reservation)
           case None =>
-            logger.warn(s"Reservation with id $reservationId was not found")
+            println(s"Reservation with id $reservationId was not found")
             Left(ResourceNotFound(s"Reservation $reservationId was not found"))
         }
     }
@@ -45,13 +43,17 @@ class ReservationController(
   private val getAllReservationsPerCourt = ReservationEndpoints.getAllReservationsForCourtEndpoint
     .authenticate()
     .serverLogic { user => courtId =>
+      println(s"Received request to get reservations for court with id: $courtId")
+
       reservationService
         .retrieveCourtById(courtId)
         .flatMap {
           case Some(_) =>
+            println(s"Retrieved court with id $courtId")
             reservationService.getAllReservationsForCourt(courtId).map(_.asRight)
           case None =>
             IO.pure(Left(ResourceNotFound(s"Court with id $courtId not found")))
+            println(s"Court with id $courtId was not found")
         }
     }
 
