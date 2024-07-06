@@ -33,7 +33,7 @@ class NotificationService(dbTransactor: DbTransactor)(notificationDao: Notificat
       notificationForm.clubId,
       notificationForm.courtId,
       notificationForm.reservationId,
-      notificationForm.status,
+      NotificationStatus.NotRead,
       createdAt
     )
     maybeNotification <- notificationDao.createNotification(notification)

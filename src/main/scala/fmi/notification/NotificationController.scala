@@ -49,8 +49,18 @@ class NotificationController(
         }
 
     }
-
+  
+  private val createNotification = NotificationEndpoints.createNotification
+    .authenticate()
+    .serverLogic { user =>
+      notificationForm =>
+        notificationService.createNotification(notificationForm)
+          .map(_.leftMap(_ => ConflictDescription("Notification with this id already exists")))
+    }
+  
+  
   val endpoints: List[ServerEndpoint[Any, IO]] = List(
     getNotification,
-    getAllNotificationsForCourt
+    getAllNotificationsForCourt,
+    createNotification
   )

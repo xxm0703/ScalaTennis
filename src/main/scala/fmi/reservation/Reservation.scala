@@ -11,7 +11,6 @@ import sttp.tapir.{CodecFormat, Schema, SchemaType}
 import sttp.tapir
 
 import java.time.Instant
-import java.util.UUID
 import fmi.utils.DerivationConfiguration.given_Configuration
 
 case class Reservation(

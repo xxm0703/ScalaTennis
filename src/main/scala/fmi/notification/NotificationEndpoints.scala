@@ -1,14 +1,7 @@
 package fmi.notification
 
 import fmi.court.CourtId
-import fmi.{
-  AuthenticationError,
-  ConflictDescription,
-  ReservationDeletionError,
-  ReservationStatusUpdateError,
-  ResourceNotFound,
-  TennisAppEndpoints
-}
+import fmi.{AuthenticationError, ConflictDescription, ResourceNotFound, TennisAppEndpoints}
 import sttp.model.StatusCode.{BadRequest, Conflict, NoContent, NotFound}
 import sttp.tapir.{oneOfVariant, statusCode, *}
 import sttp.tapir.json.circe.*

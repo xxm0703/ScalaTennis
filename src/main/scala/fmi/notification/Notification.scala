@@ -8,7 +8,7 @@ import fmi.reservation.ReservationId
 import java.time.Instant
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.*
-import doobie.util.meta.Meta
+import doobie.Meta
 import io.circe.derivation.ConfiguredCodec
 import sttp.tapir.{CodecFormat, Schema, SchemaType}
 import sttp.tapir
@@ -72,7 +72,7 @@ enum NotificationStatus derives ConfiguredCodec:
   case Read, NotRead
 
 object NotificationStatus:
-  def fromString(s: String): Option[NotificationStatus] = s.toLowerCase match
+  private def fromString(s: String): Option[NotificationStatus] = s.toLowerCase match
     case "read" => Some(NotificationStatus.Read)
     case "not_read" => Some(NotificationStatus.NotRead)
     case _ => None
@@ -82,6 +82,6 @@ object NotificationStatus:
     case Read => "read"
 
   given Meta[NotificationStatus] =
-    Meta[String].imap[NotificationStatus](x => NotificationStatus.fromString(x).get)(_.toString)
+    Meta[String].imap[NotificationStatus](x => NotificationStatus.fromString(x).get)(x => toString(x))
 
   given Schema[NotificationStatus] = Schema.derivedEnumeration()

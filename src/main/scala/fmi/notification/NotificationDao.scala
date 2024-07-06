@@ -63,7 +63,7 @@ class NotificationDao(dbTransactor: DbTransactor):
     """
       .query[Notification]
       .to[List]
-      .transact(dbTransactor)  
+      .transact(dbTransactor)
 
   def getAllNotifications: IO[List[Notification]] =
     sql"""
