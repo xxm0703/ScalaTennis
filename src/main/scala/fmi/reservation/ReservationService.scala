@@ -98,7 +98,6 @@ class ReservationService(
     : IO[Either[ResourceNotFound, Unit]] =
     reservationDao.deleteReservation(reservationId).flatMap {
       case Right(_) =>
-        
         println(
           s"Will attempt to send a ReservationDeleted notification for reservation with id ${reservation.reservationId}"
         )
@@ -114,19 +113,41 @@ class ReservationService(
               Some(reservation.user)
             )
           )
-          .map(_ => 
+          .map(_ =>
             println("Sent Reservation deleted notification")
-            Right(()))
+            Right(())
+          )
 
       case Left(_) => IO.pure(Left(ResourceNotFound("No such reservation was found")))
     }
 
-  def updateReservationStatus(reservationStatusChangeForm: ReservationStatusChangeForm)
+  def updateReservationStatus(reservationStatusChangeForm: ReservationStatusChangeForm, currentUser: UserId)
     : IO[Either[ReservationNotFound, Reservation]] =
     reservationDao
       .updateReservationStatus(reservationStatusChangeForm.reservationId, reservationStatusChangeForm.reservationStatus)
       .flatMap {
-        case Right(res) => IO.pure(Right(res))
+        case Right(res) =>
+          if reservationStatusChangeForm.reservationStatus == ReservationStatus.Cancelled then
+            println(
+              s"Will attempt to send a ReservationCancelled notification for reservation with id ${res.reservationId}"
+            )
+            notificationService
+              .createNotification(
+                NotificationForm(
+                  NotificationType.ReservationCancelled,
+                  currentUser,
+                  None,
+                  Some(res.court),
+                  None,
+                  Some(res.user)
+                )
+              )
+              .map(_ =>
+                println("Sent ReservationCancelled notification")
+                Right(())
+              )
+
+          IO.pure(Right(res))
         case Left(_) => IO.pure(Left(ReservationNotFound(reservationStatusChangeForm.reservationId)))
       }
   def retrieveCourtById(courtId: CourtId): IO[Option[Court]] = reservationDao.retrieveCourtById(courtId)
