@@ -13,5 +13,6 @@ case class NotificationForm(
   clubId: Option[ClubId],
   courtId: Option[CourtId],
   reservationId: Option[ReservationId],
+  targetUser: Option[UserId]
 ) derives Codec,
       Schema

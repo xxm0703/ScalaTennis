@@ -16,8 +16,8 @@ class NotificationDao(dbTransactor: DbTransactor):
 
   def createNotification(notification: Notification): IO[Either[NotificationAlreadyExists, Notification]] =
     sql"""
-        INSERT INTO notification (id, notification_type, triggered_by, club_id, court_id, reservation_id, status, created_at)
-        VALUES (${notification.id},${notification.notificationType}, ${notification.triggeredBy}, ${notification.clubId}, ${notification.courtId}, ${notification.reservationId}, ${notification.status}, ${notification.createdAt})
+        INSERT INTO notification (id, notification_type, triggered_by, club_id, court_id, reservation_id, status, created_at, target_user)
+        VALUES (${notification.id},${notification.notificationType}, ${notification.triggeredBy}, ${notification.clubId}, ${notification.courtId}, ${notification.reservationId}, ${notification.status}, ${notification.createdAt}, ${notification.targetUser})
       """.update.run
       .as(notification)
       .attemptSomeSqlState { case sqlstate.class23.UNIQUE_VIOLATION =>

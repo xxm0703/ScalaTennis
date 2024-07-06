@@ -24,7 +24,8 @@ case class Notification(
   courtId: Option[CourtId],
   reservationId: Option[ReservationId],
   status: NotificationStatus,
-  createdAt: Instant
+  createdAt: Instant,
+  targetUser: Option[UserId]
 ) derives Codec,
       Schema
 
@@ -58,10 +59,10 @@ object NotificationType:
     case ReservationDeleted => "reservation_deleted"
     case ClubCreationRequest => "club_creation_request"
     case CourtCreationRequest => "court_creation_request"
-    case ReservationCreationRequest =>"reservation_creation_request"
-    case ReservationCancelled =>"reservation_cancelled"
+    case ReservationCreationRequest => "reservation_creation_request"
+    case ReservationCancelled => "reservation_cancelled"
     case ClubCreationRequestDenied => "club_creation_request_denied"
-    case CourtCreationRequestDenied =>"court_creation_request_denied"
+    case CourtCreationRequestDenied => "court_creation_request_denied"
 
   given Meta[NotificationType] =
     Meta[String].imap[NotificationType](x => NotificationType.fromString(x).get)(x => toString(x))

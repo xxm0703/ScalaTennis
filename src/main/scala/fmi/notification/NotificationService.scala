@@ -34,7 +34,8 @@ class NotificationService(dbTransactor: DbTransactor)(notificationDao: Notificat
       notificationForm.courtId,
       notificationForm.reservationId,
       NotificationStatus.NotRead,
-      createdAt
+      createdAt,
+      notificationForm.targetUser
     )
     maybeNotification <- notificationDao.createNotification(notification)
   } yield maybeNotification   
