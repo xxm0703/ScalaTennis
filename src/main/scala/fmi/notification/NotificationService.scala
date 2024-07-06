@@ -52,7 +52,10 @@ class NotificationService(dbTransactor: DbTransactor)(notificationDao: Notificat
       case Right(_) => IO.pure(Right(()))
       case Left(_) => IO.pure(Left(ResourceNotFound("No such notification was found")))
     }
-
+    
+  def retrieveNotificationsForUser(userId: UserId):  IO[List[Notification]] =
+    notificationDao.getNotificationsForUser(userId)
+    
 //  def updateReservationStatus(reservationStatusChangeForm: ReservationStatusChangeForm)
 //  : IO[Either[ReservationNotFound, Reservation]] =
 //    reservationDao

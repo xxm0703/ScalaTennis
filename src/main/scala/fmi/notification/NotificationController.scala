@@ -78,9 +78,20 @@ class NotificationController(
       }
     }
 
+  private val getAllNotificationsForUser = NotificationEndpoints.retrieveNotificationsForUser
+    .authenticate()
+    .serverLogic { user => userId =>
+      println(s"Received request to get notifications for user with id: $userId")
+
+      notificationService
+        .retrieveNotificationsForUser(userId)
+        .map(_.asRight)
+
+    }
   val endpoints: List[ServerEndpoint[Any, IO]] = List(
     getNotification,
     getAllNotificationsForCourt,
     createNotification,
-    deleteNotification
+    deleteNotification,
+    getAllNotificationsForUser
   )

@@ -1,6 +1,7 @@
 package fmi.notification
 
 import fmi.court.CourtId
+import fmi.user.UserId
 import fmi.{AuthenticationError, ConflictDescription, ResourceNotFound, TennisAppEndpoints, NotificationDeletionError}
 import sttp.model.StatusCode.{BadRequest, Conflict, NoContent, NotFound}
 import sttp.tapir.{oneOfVariant, statusCode, *}
@@ -53,3 +54,14 @@ object NotificationEndpoints:
         )
       )
       .delete
+
+  val retrieveNotificationsForUser
+  : Endpoint[String, UserId, ResourceNotFound | AuthenticationError, List[Notification], Any] =
+    notificationsBaseEndpoint.secure
+      .in("user")
+      .in(path[UserId].name("user-id"))
+      .out(jsonBody[List[Notification]])
+      .errorOutVariantPrepend[AuthenticationError | ResourceNotFound](
+        oneOfVariant(statusCode(NotFound).and(jsonBody[ResourceNotFound]))
+      )
+      .get

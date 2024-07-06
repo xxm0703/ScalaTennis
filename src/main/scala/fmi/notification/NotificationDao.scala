@@ -65,6 +65,16 @@ class NotificationDao(dbTransactor: DbTransactor):
       .to[List]
       .transact(dbTransactor)
 
+  def getNotificationsForUser(userId: UserId): IO[List[Notification]] =
+    sql"""
+      SELECT *
+      FROM notification
+      WHERE target_user = $userId
+    """
+      .query[Notification]
+      .to[List]
+      .transact(dbTransactor)  
+
   def getAllNotifications: IO[List[Notification]] =
     sql"""
        SELECT *
