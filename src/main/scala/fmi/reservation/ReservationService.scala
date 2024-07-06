@@ -3,18 +3,16 @@ package fmi.reservation
 import cats.data.EitherT
 import cats.effect.IO
 import cats.syntax.all.*
-import fmi.ResourceNotFound
-import fmi.infrastructure.db.DoobieDatabase.DbTransactor
 import fmi.court.{Court, CourtId}
+import fmi.infrastructure.db.DoobieDatabase.DbTransactor
+import fmi.notification.{NotificationForm, NotificationService, NotificationType}
 import fmi.reservation.ReservationStatus.Placed
-import fmi.user.UserRole
-import fmi.user.UserId
+import fmi.user.{UserId, UserRole}
 import fmi.utils.DerivationConfiguration.given
+import fmi.{ResourceNotFound, notification}
 import io.circe.Codec
 import io.circe.derivation.ConfiguredCodec
 import sttp.tapir.Schema
-import fmi.notification
-import fmi.notification.{NotificationService, NotificationType, NotificationForm}
 
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -39,7 +37,7 @@ class ReservationService(
       reservationId,
       userId,
       reservationForm.courtId,
-      reservationForm.startTime,
+      reservationForm.startTime.truncatedTo(ChronoUnit.HOURS),
       placingTimestamp,
       Placed
     )
@@ -66,17 +64,6 @@ class ReservationService(
     )
   yield maybeReservation
 
-  // Each reservation lasts an hour
-  private def isSlotAlreadyTaken(courtId: CourtId, startTime: Instant): IO[Boolean] =
-    val endTime = startTime.plus(1, ChronoUnit.HOURS)
-    reservationDao.retrieveReservationsForCourt(courtId).map { reservations =>
-      reservations.exists { reservation =>
-        val existingStart = reservation.startTime
-        val existingEnd = reservation.startTime.plus(1, ChronoUnit.HOURS)
-        startTime.isBefore(existingEnd) && endTime.isAfter(existingStart)
-      }
-    }
-
   private def transactReservation(
     reservation: Reservation
   ): IO[Either[ReservationSlotAlreadyTaken, Reservation]] =
@@ -91,6 +78,10 @@ class ReservationService(
           }
     yield result).value
 
+  // Each reservation lasts an hour
+  private def isSlotAlreadyTaken(courtId: CourtId, startTime: Instant): IO[Boolean] =
+    reservationDao.retrieveReservationsForCourt(courtId).map:
+      _.contains(startTime)
   def getAllReservationsForCourt(courtId: CourtId): IO[List[Reservation]] =
     reservationDao.retrieveReservationsForCourt(courtId)
 
@@ -151,9 +142,8 @@ class ReservationService(
               .map(_ =>
                 println(s"Sent ${notificationType} notification")
                 Right(res)
-              ) else {
-              IO.pure(Right(res))
-            }
+              )
+          else IO.pure(Right(res))
 
         case Left(_) => IO.pure(Left(ReservationNotFound(reservationStatusChangeForm.reservationId)))
       }
@@ -172,7 +162,11 @@ class ReservationService(
   ): IO[Boolean] = IO.pure(userId == reservation.user && reservationStatus == ReservationStatus.Cancelled)
 
   def getReservedSlotsForCourt(courtId: CourtId): IO[List[Slot]] =
-    reservationDao.retrieveReservedSlotsForCourt(courtId)
+    reservationDao
+      .retrieveReservedSlotsForCourt(courtId)
+      .map:
+        _.map: startTime =>
+          Slot(startTime, startTime.plus(1, ChronoUnit.HOURS))
 
 sealed trait ReservationError derives ConfiguredCodec, Schema
 case class ReservationAlreadyExists(reservation: ReservationId) extends ReservationError

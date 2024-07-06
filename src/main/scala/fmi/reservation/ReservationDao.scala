@@ -134,7 +134,7 @@ class ReservationDao(dbTransactor: DbTransactor):
       .transact(dbTransactor)
 
 
-  def retrieveReservedSlotsForCourt(courtId: CourtId): IO[List[Slot]] =
+  def retrieveReservedSlotsForCourt(courtId: CourtId): IO[List[Instant]] =
     sql"""
          SELECT start_time
          FROM reservation
@@ -143,4 +143,3 @@ class ReservationDao(dbTransactor: DbTransactor):
       .query[Instant]
       .to[List]
       .transact(dbTransactor)
-      .map(_.map(startTime => Slot(startTime, startTime.plusSeconds(3600))))
