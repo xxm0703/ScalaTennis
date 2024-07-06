@@ -69,11 +69,11 @@ class NotificationDao(dbTransactor: DbTransactor):
     sql"""
       SELECT *
       FROM notification
-      WHERE target_user = $userId
+      WHERE target_user = $userId AND status = 'not_read'
     """
       .query[Notification]
       .to[List]
-      .transact(dbTransactor)  
+      .transact(dbTransactor)
 
   def getAllNotifications: IO[List[Notification]] =
     sql"""
@@ -104,36 +104,33 @@ class NotificationDao(dbTransactor: DbTransactor):
         case 0 => IO.pure(Left(NotificationNotFound(id)))
         case _ => IO.pure(Right(()))
       }
-//  def updateNotificationStatus(id: NotificationId, status: NotificationStatus): IO[Unit] =
-//    sql"""
-//      UPDATE notifications
-//      SET status = $status
-//      WHERE id = $id
-//    """.update.run
-//      .transact(dbTransactor)
 
-//    def updateNotificationStatus(id: NotificationId, newStatus: NotificationStatus): IO[Either[N, Notification]] =
-//      val updateQuery =
-//        sql"""
-//      UPDATE reservation
-//      SET reservation_status = $newStatus
-//      WHERE id = $id
-//    """.update.run
-//
-//      val retrieveQuery = sql"""
-//      SELECT *
-//      FROM reservation
-//      WHERE id = $id
-//    """.query[Reservation].option
-//
-//      updateQuery.transact(dbTransactor).flatMap {
-//        case 0 => IO.pure(Left(ReservationNotFound(id)))
-//        case _ =>
-//          retrieveQuery.transact(dbTransactor).map {
-//            case Some(updatedReservation) => Right(updatedReservation)
-//            case None =>
-//              Left(
-//                ReservationNotFound(id)
-//              ) // This case is unlikely but handles the case where the reservation is not found after update.
-//          }
-//      }
+  def updateNotificationStatus(id: NotificationId, newStatus: NotificationStatus)
+    : IO[Either[NotificationNotFound, Notification]] =
+    val updateQuery =
+      sql"""
+          UPDATE notification
+          SET status = $newStatus
+          WHERE id = $id
+        """.update.run
+
+    val retrieveQuery =
+      sql"""
+          SELECT *
+          FROM notification
+          WHERE id = $id
+        """
+        .query[Notification]
+        .option
+
+    updateQuery.transact(dbTransactor).flatMap {
+      case 0 => IO.pure(Left(NotificationNotFound(id)))
+      case _ =>
+        retrieveQuery.transact(dbTransactor).map {
+          case Some(updatedNotification) => Right(updatedNotification)
+          case None =>
+            Left(
+              NotificationNotFound(id)
+            ) // This case is unlikely but handles the case where the reservation is not found after update.
+        }
+    }

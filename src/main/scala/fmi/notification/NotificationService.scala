@@ -3,7 +3,7 @@ package fmi.notification
 import cats.data.EitherT
 import cats.effect.IO
 import cats.syntax.all.*
-import fmi.ResourceNotFound
+import fmi.{ResourceNotFound, NotificationStatusUpdateError}
 import fmi.infrastructure.db.DoobieDatabase.DbTransactor
 import fmi.court.{Court, CourtId}
 import fmi.reservation.ReservationStatus.Placed
@@ -56,14 +56,25 @@ class NotificationService(dbTransactor: DbTransactor)(notificationDao: Notificat
   def retrieveNotificationsForUser(userId: UserId): IO[List[Notification]] =
     notificationDao.getNotificationsForUser(userId)
 
-//  def updateReservationStatus(reservationStatusChangeForm: ReservationStatusChangeForm)
-//  : IO[Either[ReservationNotFound, Reservation]] =
-//    reservationDao
-//      .updateReservationStatus(reservationStatusChangeForm.reservationId, reservationStatusChangeForm.reservationStatus)
-//      .flatMap {
-//        case Right(res) => IO.pure(Right(res))
-//        case Left(_) => IO.pure(Left(ReservationNotFound(reservationStatusChangeForm.reservationId)))
-//      }
+  def updateNotificationStatus(notificationStatusChangeForm: NotificationStatusChangeForm)
+    : IO[Either[NotificationStatusUpdateError, Notification]] =
+    println(s"Received request to update the status of notification with id ${ notificationStatusChangeForm.notificationId}")
+    notificationDao
+      .updateNotificationStatus(
+        notificationStatusChangeForm.notificationId,
+        notificationStatusChangeForm.notificationStatus
+      )
+      .flatMap {
+        case Right(res) => IO.pure(Right(res))
+        case Left(_) =>
+          IO.pure(
+            Left(
+              NotificationStatusUpdateError(
+                s"Could not update status for notification with id ${notificationStatusChangeForm.notificationId}"
+              )
+            )
+          )
+      }
 
 sealed trait NotificationError derives ConfiguredCodec, Schema
 case class NotificationNotFound(notificationId: NotificationId) extends NotificationError

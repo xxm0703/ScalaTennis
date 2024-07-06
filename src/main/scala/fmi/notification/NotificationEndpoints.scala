@@ -2,7 +2,14 @@ package fmi.notification
 
 import fmi.court.CourtId
 import fmi.user.UserId
-import fmi.{AuthenticationError, ConflictDescription, ResourceNotFound, TennisAppEndpoints, NotificationDeletionError}
+import fmi.{
+  AuthenticationError,
+  ConflictDescription,
+  ResourceNotFound,
+  TennisAppEndpoints,
+  NotificationDeletionError,
+  NotificationStatusUpdateError
+}
 import sttp.model.StatusCode.{BadRequest, Conflict, NoContent, NotFound}
 import sttp.tapir.{oneOfVariant, statusCode, *}
 import sttp.tapir.json.circe.*
@@ -56,7 +63,7 @@ object NotificationEndpoints:
       .delete
 
   val retrieveNotificationsForUser
-  : Endpoint[String, UserId, ResourceNotFound | AuthenticationError, List[Notification], Any] =
+    : Endpoint[String, UserId, ResourceNotFound | AuthenticationError, List[Notification], Any] =
     notificationsBaseEndpoint.secure
       .in("user")
       .in(path[UserId].name("user-id"))
@@ -65,3 +72,21 @@ object NotificationEndpoints:
         oneOfVariant(statusCode(NotFound).and(jsonBody[ResourceNotFound]))
       )
       .get
+
+  val changeNotificationStatus: Endpoint[
+    String,
+    NotificationStatusChangeForm,
+    AuthenticationError | NotificationStatusUpdateError,
+    Notification,
+    Any
+  ] =
+    notificationsBaseEndpoint.secure
+      .in(jsonBody[NotificationStatusChangeForm])
+      .out(jsonBody[Notification])
+      .errorOutVariantPrepend[AuthenticationError | NotificationStatusUpdateError](
+        oneOfVariant(
+          statusCode(BadRequest)
+            .and(jsonBody[NotificationStatusUpdateError].description("Notification status could not be changed."))
+        )
+      )
+      .put

@@ -4,7 +4,13 @@ import cats.effect.IO
 import cats.syntax.all.*
 import fmi.user.UserRole
 import fmi.user.authentication.AuthenticationService
-import fmi.{ConflictDescription, NotificationDeletionError, ReservationStatusUpdateError, ResourceNotFound}
+import fmi.{
+  ConflictDescription,
+  NotificationDeletionError,
+  ReservationStatusUpdateError,
+  ResourceNotFound,
+  NotificationStatusUpdateError
+}
 import sttp.tapir.server.ServerEndpoint
 import fmi.user.UserRole.Admin
 
@@ -71,7 +77,6 @@ class NotificationController(
               .deleteNotification(notificationId)
               .map(_.leftMap(_ => NotificationDeletionError("Notification could not be deleted")))
           else
-
             IO.pure(Left(NotificationDeletionError("User is not authorized to delete reservations")))
 
         case None => IO.pure(Left(NotificationDeletionError("No such notification")))
@@ -88,10 +93,39 @@ class NotificationController(
         .map(_.asRight)
 
     }
+
+  private val updateNotificationStatus = NotificationEndpoints.changeNotificationStatus
+    .authenticate()
+    .serverLogic { user => notificationStatusChangeForm =>
+      if user.role != UserRole.Admin then
+        IO.pure(
+          Left(
+            NotificationStatusUpdateError(
+              "User is not authorized to change notification status"
+            )
+          )
+        )
+      else
+        println(
+          s"Attempting to get notification with id ${notificationStatusChangeForm.notificationId} to update its status to ${notificationStatusChangeForm.notificationStatus}"
+        )
+        notificationService.getNotificationById(notificationStatusChangeForm.notificationId).flatMap {
+          case Some(notification) =>
+            println(
+              s"Retrieved notification with id ${notificationStatusChangeForm.notificationId} and status ${notificationStatusChangeForm.notificationStatus}"
+            )
+            println(s"User is with role ${user.role.toString} and id ${user.id}")
+            notificationService
+              .updateNotificationStatus(notificationStatusChangeForm)
+          case None => IO.pure(Left(NotificationStatusUpdateError("No such notification")))
+        }
+    }
+
   val endpoints: List[ServerEndpoint[Any, IO]] = List(
     getNotification,
     getAllNotificationsForCourt,
     createNotification,
     deleteNotification,
-    getAllNotificationsForUser
+    getAllNotificationsForUser,
+    updateNotificationStatus
   )
