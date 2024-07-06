@@ -7,17 +7,25 @@ import fmi.ResourceNotFound
 import fmi.infrastructure.db.DoobieDatabase.DbTransactor
 import fmi.court.{Court, CourtId}
 import fmi.reservation.ReservationStatus.Placed
-import fmi.user.UserRole.{Admin, Owner, Player}
-import fmi.user.{User, UserId}
+import fmi.user.UserRole
+import fmi.user.UserId
 import fmi.utils.DerivationConfiguration.given
 import io.circe.Codec
 import io.circe.derivation.ConfiguredCodec
 import sttp.tapir.Schema
+import fmi.notification
+import fmi.notification.{NotificationService, NotificationType, NotificationForm}
 
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 
-class ReservationService(dbTransactor: DbTransactor)(reservationDao: ReservationDao):
+class ReservationService(
+  dbTransactor: DbTransactor
+)(
+  reservationDao: ReservationDao
+)(
+  notificationService: NotificationService
+):
 
   def getReservationById(reservationId: ReservationId): IO[Option[Reservation]] =
     reservationDao.retrieveReservation(reservationId)
@@ -37,6 +45,25 @@ class ReservationService(dbTransactor: DbTransactor)(reservationDao: Reservation
     )
 
     maybeReservation <- transactReservation(reservation)
+
+    _ <- maybeReservation.traverse(reservationResult =>
+      println(
+        s"Will attempt to send a ReservationCreationRequest notification for reservation with id ${reservationResult.reservationId}"
+      )
+
+      notificationService
+        .createNotification(
+          NotificationForm(
+            NotificationType.ReservationCreationRequest,
+            userId,
+            None,
+            Some(reservationForm.courtId),
+            Some(reservationResult.reservationId),
+            Some(userId)
+          )
+        )
+        .map(_ => Right(()))
+    )
   yield maybeReservation
 
   // Each reservation lasts an hour
@@ -49,6 +76,7 @@ class ReservationService(dbTransactor: DbTransactor)(reservationDao: Reservation
         startTime.isBefore(existingEnd) && endTime.isAfter(existingStart)
       }
     }
+
   private def transactReservation(
     reservation: Reservation
   ): IO[Either[ReservationSlotAlreadyTaken, Reservation]] =
@@ -66,9 +94,30 @@ class ReservationService(dbTransactor: DbTransactor)(reservationDao: Reservation
   def getAllReservationsForCourt(courtId: CourtId): IO[List[Reservation]] =
     reservationDao.retrieveReservationsForCourt(courtId)
 
-  def deleteReservationLogic(reservationId: ReservationId): IO[Either[ResourceNotFound, Unit]] =
+  def deleteReservationLogic(reservationId: ReservationId, reservation: Reservation, currentUser: UserId)
+    : IO[Either[ResourceNotFound, Unit]] =
     reservationDao.deleteReservation(reservationId).flatMap {
-      case Right(_) => IO.pure(Right(()))
+      case Right(_) =>
+        
+        println(
+          s"Will attempt to send a ReservationDeleted notification for reservation with id ${reservation.reservationId}"
+        )
+
+        notificationService
+          .createNotification(
+            NotificationForm(
+              NotificationType.ReservationDeleted,
+              currentUser,
+              None,
+              Some(reservation.court),
+              None,
+              Some(reservation.user)
+            )
+          )
+          .map(_ => 
+            println("Sent Reservation deleted notification")
+            Right(()))
+
       case Left(_) => IO.pure(Left(ResourceNotFound("No such reservation was found")))
     }
 
@@ -96,7 +145,7 @@ class ReservationService(dbTransactor: DbTransactor)(reservationDao: Reservation
 
   def getReservedSlotsForCourt(courtId: CourtId): IO[List[Slot]] =
     reservationDao.retrieveReservedSlotsForCourt(courtId)
-    
+
 sealed trait ReservationError derives ConfiguredCodec, Schema
 case class ReservationAlreadyExists(reservation: ReservationId) extends ReservationError
 case class ReservationSlotAlreadyTaken(court: CourtId, startTime: Instant) extends ReservationError

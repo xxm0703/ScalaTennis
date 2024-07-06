@@ -13,7 +13,6 @@ import fmi.{
 import sttp.model.StatusCode.{BadRequest, Conflict, NoContent, NotFound}
 import sttp.tapir.{oneOfVariant, statusCode, *}
 import sttp.tapir.json.circe.*
-case class ErrorResponse(message: String)
 
 object ReservationEndpoints:
   import TennisAppEndpoints.*
