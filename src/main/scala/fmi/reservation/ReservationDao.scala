@@ -7,7 +7,8 @@ import doobie.implicits.*
 import doobie.postgres.implicits.*
 import fmi.infrastructure.db.DoobieDatabase.DbTransactor
 import doobie.postgres.sqlstate
-import fmi.court.{CourtId, Court}
+import fmi.court.{Court, CourtId}
+import fmi.user.{User, UserId}
 
 import java.time.Instant
 
@@ -36,7 +37,7 @@ class ReservationDao(dbTransactor: DbTransactor):
 
   def retrieveReservationAtSlot(court: CourtId, startTime: Instant): IO[Option[Reservation]] =
     sql"""
-            SELECT id, user_id, court_id, start_time, placing_timestamp, reservation_status
+            SELECT *
             FROM reservation
             WHERE court_id = $court AND start_time = $startTime 
           """
@@ -112,5 +113,22 @@ class ReservationDao(dbTransactor: DbTransactor):
       WHERE r.id = $reservationId
       """
       .query[Court]
+      .option
+      .transact(dbTransactor)
+
+  def retrieveCourtOwnerForReservation(reservationId: ReservationId): IO[Option[UserId]] =
+    sql"""
+         SELECT
+             cl.owner AS club_owner
+         FROM
+             reservation r
+         JOIN
+             court c ON r.court_id = c.id
+         JOIN
+             club cl ON c.club_id = cl.id
+         WHERE
+             r.id = $reservationId
+         """
+      .query[UserId]
       .option
       .transact(dbTransactor)

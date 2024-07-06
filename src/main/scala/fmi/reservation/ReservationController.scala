@@ -52,8 +52,9 @@ class ReservationController(
             println(s"Retrieved court with id $courtId")
             reservationService.getAllReservationsForCourt(courtId).map(_.asRight)
           case None =>
-            IO.pure(Left(ResourceNotFound(s"Court with id $courtId not found")))
             println(s"Court with id $courtId was not found")
+            IO.pure(Left(ResourceNotFound(s"Court with id $courtId not found")))
+
         }
     }
 
@@ -74,34 +75,67 @@ class ReservationController(
   private val updateReservationStatus = ReservationEndpoints.changeReservationStatusEndpoint
     .authenticate()
     .serverLogic { user => reservationStatusChangeForm =>
+      println(
+        s"Attempting to get reservation with id ${reservationStatusChangeForm.reservationId} to update its status to ${reservationStatusChangeForm.reservationStatus}"
+      )
       reservationService.getReservationById(reservationStatusChangeForm.reservationId).flatMap {
         case Some(reservation) =>
+          println(
+            s"Retrieved reservation with id ${reservation.reservationId} and status ${reservation.reservationStatus} made by user with id ${reservation.user}"
+          )
+          println(s"User is with role ${user.role.toString} and id ${user.id}")
           user.role match
             case UserRole.Player =>
-              if (reservationStatusChangeForm.reservationStatus == ReservationStatus.Approved || reservationStatusChangeForm.reservationStatus == ReservationStatus.Placed) && user.id == reservation.user
-              then
-                IO.pure(
-                  Left(
-                    ReservationStatusUpdateError(
-                      "User is not authorized to change reservation status to Approved or Placed"
+              val statusUpdateIsValid = reservationService
+                .isReservationStatusUpdateValidForPlayerUser(
+                  user.id,
+                  reservationStatusChangeForm.reservationStatus,
+                  reservation
+                )
+
+              statusUpdateIsValid.flatMap {
+                case false =>
+                  println(
+                    s"Player user may not change the status of their reservations to Approved or Placed. User id ${user.id}, reservation made by user with id ${reservation.user}"
+                  )
+                  IO.pure(
+                    Left(
+                      ReservationStatusUpdateError(
+                        "User is not authorized to change reservation status to Approved or Placed"
+                      )
                     )
                   )
-                )
-              else
-                reservationService
-                  .updateReservationStatus(reservationStatusChangeForm)
-                  .map(_.leftMap(_ => ReservationStatusUpdateError("Reservation status could not be changed")))
+                case true =>
+                  println(
+                    s"Attempting to update reservation status from ${reservation.reservationStatus} to ${reservationStatusChangeForm.reservationStatus}"
+                  )
+                  reservationService
+                    .updateReservationStatus(reservationStatusChangeForm)
+                    .map(_.leftMap(_ => ReservationStatusUpdateError("Reservation status could not be changed")))
+
+              }
             case UserRole.Admin =>
               reservationService
                 .updateReservationStatus(reservationStatusChangeForm)
                 .map(_.leftMap(_ => ReservationStatusUpdateError("Reservation status could not be changed")))
 
             case UserRole.Owner =>
-              // TODO: check if user is the owner of the club
-              reservationService
-                .updateReservationStatus(reservationStatusChangeForm)
-                .map(_.leftMap(_ => ReservationStatusUpdateError("Reservation status could not be changed")))
-        // else IO.pure(Left(ReservationStatusUpdateError("User is not authorized to change reservation status")))
+              reservationService.retrieveCourtOwnerForReservation(reservation.reservationId).flatMap {
+                case Some(owner) =>
+                  if user.id == owner then
+                    reservationService
+                      .updateReservationStatus(reservationStatusChangeForm)
+                      .map(_.leftMap(_ => ReservationStatusUpdateError("Reservation status could not be changed")))
+                  else
+                    IO.pure(
+                      Left(
+                        ReservationStatusUpdateError(
+                          "User is not authorized to change reservation status."
+                        )
+                      )
+                    )
+                case None => IO.pure(Left(ReservationStatusUpdateError("No such reservation")))
+              }
         case None => IO.pure(Left(ReservationStatusUpdateError("No such reservation")))
       }
     }

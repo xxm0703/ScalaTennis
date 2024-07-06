@@ -5,9 +5,10 @@ import cats.effect.IO
 import cats.syntax.all.*
 import fmi.ResourceNotFound
 import fmi.infrastructure.db.DoobieDatabase.DbTransactor
-import fmi.court.{CourtId,Court}
+import fmi.court.{Court, CourtId}
 import fmi.reservation.ReservationStatus.Placed
-import fmi.user.UserId
+import fmi.user.UserRole.{Admin, Owner, Player}
+import fmi.user.{User, UserId}
 import fmi.utils.DerivationConfiguration.given
 import io.circe.Codec
 import io.circe.derivation.ConfiguredCodec
@@ -80,6 +81,18 @@ class ReservationService(dbTransactor: DbTransactor)(reservationDao: Reservation
         case Left(_) => IO.pure(Left(ReservationNotFound(reservationStatusChangeForm.reservationId)))
       }
   def retrieveCourtById(courtId: CourtId): IO[Option[Court]] = reservationDao.retrieveCourtById(courtId)
+
+  def retrieveCourtForReservation(reservationId: ReservationId): IO[Option[Court]] =
+    reservationDao.retrieveCourtForReservation(reservationId)
+
+  def retrieveCourtOwnerForReservation(reservationId: ReservationId): IO[Option[UserId]] =
+    reservationDao.retrieveCourtOwnerForReservation(reservationId)
+
+  def isReservationStatusUpdateValidForPlayerUser(
+    userId: UserId,
+    reservationStatus: ReservationStatus,
+    reservation: Reservation
+  ): IO[Boolean] = IO.pure(userId == reservation.user && reservationStatus == ReservationStatus.Cancelled)
 
 sealed trait ReservationError derives ConfiguredCodec, Schema
 case class ReservationAlreadyExists(reservation: ReservationId) extends ReservationError
