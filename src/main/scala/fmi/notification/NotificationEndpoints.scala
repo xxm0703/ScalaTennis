@@ -1,7 +1,7 @@
 package fmi.notification
 
 import fmi.court.CourtId
-import fmi.{AuthenticationError, ConflictDescription, ResourceNotFound, TennisAppEndpoints}
+import fmi.{AuthenticationError, ConflictDescription, ResourceNotFound, TennisAppEndpoints, NotificationDeletionError}
 import sttp.model.StatusCode.{BadRequest, Conflict, NoContent, NotFound}
 import sttp.tapir.{oneOfVariant, statusCode, *}
 import sttp.tapir.json.circe.*
@@ -12,7 +12,7 @@ object NotificationEndpoints:
   private val notificationsBaseEndpoint = v1BaseEndpoint.in("notifications")
 
   val retrieveNotification
-  : Endpoint[String, NotificationId, ResourceNotFound | AuthenticationError, Notification, Any] =
+    : Endpoint[String, NotificationId, ResourceNotFound | AuthenticationError, Notification, Any] =
     notificationsBaseEndpoint.secure
       .in(path[NotificationId].name("notification-id"))
       .out(jsonBody[Notification])
@@ -22,7 +22,7 @@ object NotificationEndpoints:
       .get
 
   val retrieveNotificationsForCourt
-  : Endpoint[String, CourtId, ResourceNotFound | AuthenticationError, List[Notification], Any] =
+    : Endpoint[String, CourtId, ResourceNotFound | AuthenticationError, List[Notification], Any] =
     notificationsBaseEndpoint.secure
       .in("court")
       .in(path[CourtId].name("court-id"))
@@ -32,9 +32,8 @@ object NotificationEndpoints:
       )
       .get
 
-
   val createNotification
-  : Endpoint[String, NotificationForm, AuthenticationError | ConflictDescription, Notification, Any] =
+    : Endpoint[String, NotificationForm, AuthenticationError | ConflictDescription, Notification, Any] =
     notificationsBaseEndpoint.secure
       .in(jsonBody[NotificationForm])
       .out(jsonBody[Notification])
@@ -43,5 +42,14 @@ object NotificationEndpoints:
       )
       .post
 
-
- 
+  val deleteNotificationEndpoint
+    : Endpoint[String, NotificationId, AuthenticationError | NotificationDeletionError, Unit, Any] =
+    notificationsBaseEndpoint.secure
+      .in(path[NotificationId].name("notification-id"))
+      .out(statusCode(NoContent))
+      .errorOutVariantPrepend[AuthenticationError | NotificationDeletionError](
+        oneOfVariant(
+          statusCode(BadRequest).and(jsonBody[NotificationDeletionError].description("No such notification was found"))
+        )
+      )
+      .delete

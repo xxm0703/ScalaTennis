@@ -84,6 +84,16 @@ class NotificationDao(dbTransactor: DbTransactor):
       .option
       .transact(dbTransactor)
 
+  def deleteReservation(id: NotificationId): IO[Either[NotificationNotFound, Unit]] =
+    sql"""
+         DELETE FROM notification
+         WHERE id = $id
+       """.update.run
+      .transact(dbTransactor)
+      .flatMap {
+        case 0 => IO.pure(Left(NotificationNotFound(id)))
+        case _ => IO.pure(Right(()))
+      }
 //  def updateNotificationStatus(id: NotificationId, status: NotificationStatus): IO[Unit] =
 //    sql"""
 //      UPDATE notifications

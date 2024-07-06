@@ -46,12 +46,13 @@ class NotificationService(dbTransactor: DbTransactor)(notificationDao: Notificat
 
   def retrieveCourtById(courtId: CourtId): IO[Option[Court]] = notificationDao.retrieveCourtById(courtId)
 
-//  def deleteReservationLogic(reservationId: ReservationId): IO[Either[ResourceNotFound, Unit]] =
-//    reservationDao.deleteReservation(reservationId).flatMap {
-//      case Right(_) => IO.pure(Right(()))
-//      case Left(_) => IO.pure(Left(ResourceNotFound("No such reservation was found")))
-//    }
-//
+  def deleteNotification(notificationId: NotificationId): IO[Either[ResourceNotFound, Unit]] =
+    println(s"Received request to delete notification with id ${notificationId}")
+    notificationDao.deleteReservation(notificationId).flatMap {
+      case Right(_) => IO.pure(Right(()))
+      case Left(_) => IO.pure(Left(ResourceNotFound("No such notification was found")))
+    }
+
 //  def updateReservationStatus(reservationStatusChangeForm: ReservationStatusChangeForm)
 //  : IO[Either[ReservationNotFound, Reservation]] =
 //    reservationDao
@@ -60,22 +61,6 @@ class NotificationService(dbTransactor: DbTransactor)(notificationDao: Notificat
 //        case Right(res) => IO.pure(Right(res))
 //        case Left(_) => IO.pure(Left(ReservationNotFound(reservationStatusChangeForm.reservationId)))
 //      }
-//  def retrieveCourtById(courtId: CourtId): IO[Option[Court]] = reservationDao.retrieveCourtById(courtId)
-//
-//  def retrieveCourtForReservation(reservationId: ReservationId): IO[Option[Court]] =
-//    reservationDao.retrieveCourtForReservation(reservationId)
-//
-//  def retrieveCourtOwnerForReservation(reservationId: ReservationId): IO[Option[UserId]] =
-//    reservationDao.retrieveCourtOwnerForReservation(reservationId)
-//
-//  def isReservationStatusUpdateValidForPlayerUser(
-//                                                   userId: UserId,
-//                                                   reservationStatus: ReservationStatus,
-//                                                   reservation: Reservation
-//                                                 ): IO[Boolean] = IO.pure(userId == reservation.user && reservationStatus == ReservationStatus.Cancelled)
-//
-//  def getReservedSlotsForCourt(courtId: CourtId): IO[List[Slot]] =
-//    reservationDao.retrieveReservedSlotsForCourt(courtId)
 
 sealed trait NotificationError derives ConfiguredCodec, Schema
 case class NotificationNotFound(notificationId: NotificationId) extends NotificationError
