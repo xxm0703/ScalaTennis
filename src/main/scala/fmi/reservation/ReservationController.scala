@@ -2,7 +2,12 @@ package fmi.reservation
 
 import cats.effect.IO
 import cats.syntax.all.*
-import fmi.{ConflictDescription, ReservationDeletionError, ReservationStatusUpdateError, ResourceNotFound}
+import fmi.{
+  ReservationDeletionError,
+  ReservationCreationError,
+  ReservationStatusUpdateError,
+  ResourceNotFound
+}
 import fmi.court.CourtId
 import fmi.user.UserRole
 import fmi.user.UserRole.{Owner, Player, Admin}
@@ -36,9 +41,19 @@ class ReservationController(
   private val placeReservation = ReservationEndpoints.placeReservationEndpoint
     .authenticate()
     .serverLogic { user => reservationForm =>
+      println(s"Received request to place reservations for court with id: ${reservationForm.courtId}")
       reservationService
-        .placeReservation(user.id, reservationForm)
-        .map(_.leftMap(_ => ConflictDescription("Slot is already taken")))
+        .retrieveCourtById(reservationForm.courtId)
+        .flatMap {
+          case Some(_) =>
+            println(s"Retrieved court with id ${reservationForm.courtId}")
+            reservationService
+              .placeReservation(user.id, reservationForm)
+              .map(_.leftMap(_ => ReservationCreationError("Slot is already taken")))
+          case None =>
+            println(s"Court with id ${reservationForm.courtId} was not found")
+            IO.pure(Left(ReservationCreationError(s"Court with id ${reservationForm.courtId} not found")))
+        }
     }
 
   private val getAllReservationsPerCourt = ReservationEndpoints.getAllReservationsForCourtEndpoint
@@ -165,14 +180,13 @@ class ReservationController(
 
   private val getReservedSlotsForCourt = ReservationEndpoints.getReservedSlotsForCourtEndpoint
     .authenticate()
-    .serverLogic { user =>
-      courtId =>
-        reservationService.retrieveCourtById(courtId).flatMap {
-          case Some(_) =>
-            reservationService.getReservedSlotsForCourt(courtId).map(_.asRight)
-          case None =>
-            IO.pure(Left(ResourceNotFound(s"Court with id $courtId not found")))
-        }
+    .serverLogic { user => courtId =>
+      reservationService.retrieveCourtById(courtId).flatMap {
+        case Some(_) =>
+          reservationService.getReservedSlotsForCourt(courtId).map(_.asRight)
+        case None =>
+          IO.pure(Left(ResourceNotFound(s"Court with id $courtId not found")))
+      }
     }
 
   val endpoints: List[ServerEndpoint[Any, IO]] = List(

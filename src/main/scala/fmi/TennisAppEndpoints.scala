@@ -16,6 +16,7 @@ case class BadRequestDescription[E](error: E) extends HttpError
 case class ConflictDescription(message: String) extends HttpError derives Codec, Schema
 case class ReservationDeletionError(message: String) extends HttpError derives Codec, Schema
 case class ReservationStatusUpdateError(message: String) extends HttpError derives Codec, Schema
+case class ReservationCreationError(message: String) extends HttpError derives Codec, Schema
 
 object BadRequestDescription:
   given [E : Codec]: Codec[BadRequestDescription[E]] = Codec.derived

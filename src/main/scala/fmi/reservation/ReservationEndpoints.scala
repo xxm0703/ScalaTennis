@@ -6,6 +6,7 @@ import fmi.{
   ConflictDescription,
   ReservationDeletionError,
   ReservationStatusUpdateError,
+  ReservationCreationError,
   ResourceNotFound,
   TennisAppEndpoints
 }
@@ -29,13 +30,20 @@ object ReservationEndpoints:
       )
       .get
 
-  val placeReservationEndpoint
-    : Endpoint[String, ReservationForm, AuthenticationError | ConflictDescription, Reservation, Any] =
+  val placeReservationEndpoint: Endpoint[
+    String,
+    ReservationForm,
+    AuthenticationError | ReservationCreationError,
+    Reservation,
+    Any
+  ] =
     reservationsBaseEndpoint.secure
       .in(jsonBody[ReservationForm])
       .out(jsonBody[Reservation])
-      .errorOutVariantPrepend[AuthenticationError | ConflictDescription](
-        oneOfVariant(statusCode(Conflict).and(jsonBody[ConflictDescription]))
+      .errorOutVariantPrepend[AuthenticationError | ReservationCreationError](
+        oneOfVariant(
+          statusCode(Conflict).and(jsonBody[ReservationCreationError])
+        )
       )
       .post
 
