@@ -11,6 +11,7 @@ import fmi.config.TennisAppConfig
 import fmi.court.CourtModule
 import fmi.reservation.ReservationModule
 import fmi.user.UsersModule
+import fmi.notification.NotificationModule
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.implicits.*
 import org.http4s.server.Server
@@ -32,9 +33,10 @@ object TennisApp extends IOApp.Simple:
     clubModule <- ClubModule(dbModule.dbTransactor, usersModule.authenticationService)
     courtModule <- CourtModule(dbModule.dbTransactor, usersModule.authenticationService)
     reservationModule <- ReservationModule(dbModule.dbTransactor, usersModule.authenticationService)
+    notificationModule <- NotificationModule(dbModule.dbTransactor, usersModule.authenticationService)
 
-    apiEndpoints = usersModule.endpoints ::: clubModule.endpoints ::: courtModule.endpoints ::: reservationModule.endpoints
-    docEndpoints = SwaggerInterpreter().fromServerEndpoints[IO](apiEndpoints, "library-app", "1.0.0")
+    apiEndpoints = usersModule.endpoints ::: clubModule.endpoints ::: courtModule.endpoints ::: reservationModule.endpoints ::: notificationModule.endpoints
+    docEndpoints = SwaggerInterpreter().fromServerEndpoints[IO](apiEndpoints, "tennis-app", "1.0.0")
 
     routes = Http4sServerInterpreter[IO]().toRoutes(apiEndpoints ::: docEndpoints).orNotFound
 

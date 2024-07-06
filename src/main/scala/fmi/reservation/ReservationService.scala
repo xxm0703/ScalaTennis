@@ -49,6 +49,7 @@ class ReservationService(dbTransactor: DbTransactor)(reservationDao: Reservation
         startTime.isBefore(existingEnd) && endTime.isAfter(existingStart)
       }
     }
+    // TODO add check if court exists
   private def transactReservation(
     reservation: Reservation
   ): IO[Either[ReservationSlotAlreadyTaken, Reservation]] =

@@ -12,7 +12,6 @@ import fmi.court.CourtId
 import fmi.user.UserRole
 import fmi.user.UserRole.{Owner, Player, Admin}
 import fmi.user.authentication.AuthenticationService
-import org.slf4j.{Logger, LoggerFactory}
 import sttp.tapir.server.ServerEndpoint
 
 class ReservationController(
