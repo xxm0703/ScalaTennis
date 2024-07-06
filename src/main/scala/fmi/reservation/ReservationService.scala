@@ -136,7 +136,7 @@ class ReservationService(
               if reservationStatusChangeForm.reservationStatus == ReservationStatus.Cancelled then
                 NotificationType.ReservationCancelled
               else NotificationType.ReservationApproved
-              
+
             notificationService
               .createNotification(
                 NotificationForm(
