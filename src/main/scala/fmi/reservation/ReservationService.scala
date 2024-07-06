@@ -14,7 +14,7 @@ import io.circe.Codec
 import io.circe.derivation.ConfiguredCodec
 import sttp.tapir.Schema
 import fmi.notification
-import fmi.notification.{NotificationService, NotificationType,NotificationForm}
+import fmi.notification.{NotificationService, NotificationType, NotificationForm}
 
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -47,16 +47,22 @@ class ReservationService(
     maybeReservation <- transactReservation(reservation)
 
     _ <- maybeReservation.traverse(reservationResult =>
-      notificationService.createNotification(
-        NotificationForm(
-          NotificationType.ReservationCreationRequest,
-          userId,
-          None,
-          Some(reservationForm.courtId),
-          Some(reservationResult.reservationId),
-          Some(userId)
-        )
+      println(
+        s"Will attempt to send a ReservationCreationRequest notification for reservation with id ${reservationResult.reservationId}"
       )
+
+      notificationService
+        .createNotification(
+          NotificationForm(
+            NotificationType.ReservationCreationRequest,
+            userId,
+            None,
+            Some(reservationForm.courtId),
+            Some(reservationResult.reservationId),
+            Some(userId)
+          )
+        )
+        .map(_ => Right(()))
     )
   yield maybeReservation
 
@@ -70,7 +76,7 @@ class ReservationService(
         startTime.isBefore(existingEnd) && endTime.isAfter(existingStart)
       }
     }
-    // TODO add check if court exists
+
   private def transactReservation(
     reservation: Reservation
   ): IO[Either[ReservationSlotAlreadyTaken, Reservation]] =
@@ -88,9 +94,25 @@ class ReservationService(
   def getAllReservationsForCourt(courtId: CourtId): IO[List[Reservation]] =
     reservationDao.retrieveReservationsForCourt(courtId)
 
-  def deleteReservationLogic(reservationId: ReservationId): IO[Either[ResourceNotFound, Unit]] =
+  def deleteReservationLogic(reservationId: ReservationId, reservation: Reservation, currentUser: UserId)
+    : IO[Either[ResourceNotFound, Unit]] =
     reservationDao.deleteReservation(reservationId).flatMap {
-      case Right(_) => IO.pure(Right(()))
+      case Right(_) =>
+        println(
+          s"Will attempt to send a ReservationDeleted notification for reservation with id ${reservation.reservationId}"
+        )
+        //TODO: remove FK constraints on notification table 
+        notificationService.createNotification(
+          NotificationForm(
+            NotificationType.ReservationDeleted,
+            currentUser,
+            None,
+            Some(reservation.court),
+            None,
+            Some(reservation.user)
+          )
+        )
+        IO.pure(Right(()))
       case Left(_) => IO.pure(Left(ResourceNotFound("No such reservation was found")))
     }
 

@@ -22,7 +22,7 @@ class NotificationService(dbTransactor: DbTransactor)(notificationDao: Notificat
   def getNotificationById(notificationId: NotificationId): IO[Option[Notification]] =
     notificationDao.getNotificationById(notificationId)
 
-  def createNotification(notificationForm: NotificationForm): IO[Either[NotificationAlreadyExists, Notification]] = for {
+  def createNotification(notificationForm: NotificationForm): IO[Either[NotificationAlreadyExists, Notification]] = for
     notificationId <- NotificationId.generate
     createdAt <- IO.realTimeInstant
 
@@ -37,9 +37,9 @@ class NotificationService(dbTransactor: DbTransactor)(notificationDao: Notificat
       createdAt,
       notificationForm.targetUser
     )
-    maybeNotification <- notificationDao.createNotification(notification)
-  } yield maybeNotification   
 
+    maybeNotification <- notificationDao.createNotification(notification)
+  yield maybeNotification
 
   def getAllNotificationsForCourt(courtId: CourtId): IO[List[Notification]] =
     notificationDao.getNotificationsByCourt(courtId)
@@ -52,10 +52,10 @@ class NotificationService(dbTransactor: DbTransactor)(notificationDao: Notificat
       case Right(_) => IO.pure(Right(()))
       case Left(_) => IO.pure(Left(ResourceNotFound("No such notification was found")))
     }
-    
-  def retrieveNotificationsForUser(userId: UserId):  IO[List[Notification]] =
+
+  def retrieveNotificationsForUser(userId: UserId): IO[List[Notification]] =
     notificationDao.getNotificationsForUser(userId)
-    
+
 //  def updateReservationStatus(reservationStatusChangeForm: ReservationStatusChangeForm)
 //  : IO[Either[ReservationNotFound, Reservation]] =
 //    reservationDao

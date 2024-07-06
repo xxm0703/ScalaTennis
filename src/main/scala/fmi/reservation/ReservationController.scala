@@ -80,18 +80,18 @@ class ReservationController(
         case Some(reservation) =>
           if user.id == reservation.user then
             reservationService
-              .deleteReservationLogic(reservationId)
+              .deleteReservationLogic(reservationId, reservation, user.id)
               .map(_.leftMap(_ => ReservationDeletionError("Reservation could not be deleted")))
           else
             user.role match
               case Admin =>
                 reservationService
-                  .deleteReservationLogic(reservationId)
+                  .deleteReservationLogic(reservationId, reservation, user.id)
                   .map(_.leftMap(_ => ReservationDeletionError("Reservation could not be deleted")))
               case Player =>
                 if user.id == reservation.user then
                   reservationService
-                    .deleteReservationLogic(reservationId)
+                    .deleteReservationLogic(reservationId, reservation, user.id)
                     .map(_.leftMap(_ => ReservationDeletionError("Reservation could not be deleted")))
                 else IO.pure(Left(ReservationDeletionError("User is not authorized to delete reservations")))
               case Owner =>
@@ -100,7 +100,7 @@ class ReservationController(
                   case Some(owner) =>
                     if owner == reservation.user then
                       reservationService
-                        .deleteReservationLogic(reservationId)
+                        .deleteReservationLogic(reservationId, reservation, user.id)
                         .map(_.leftMap(_ => ReservationDeletionError("Reservation could not be deleted")))
                     else IO.pure(Left(ReservationDeletionError("User is not authorized to delete reservations")))
                   case None => IO.pure(Left(ReservationDeletionError("User is not authorized to delete reservations")))
