@@ -24,6 +24,10 @@ object CourtEndpoints:
     .errorOut(statusCode(NotFound).and(jsonBody[ResourceNotFound]))
     .get
   
+  val getCourtsForClubEndpoint = courtsBaseEndpoint
+    .out(jsonBody[List[Court]])
+    .get
+  
   val putCourtEndpoint =
     courtsBaseEndpoint.secure
       .in(jsonBody[CourtDto])

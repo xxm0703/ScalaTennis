@@ -21,6 +21,11 @@ object ClubEndpoints:
       .in(jsonBody[ClubDto])
       .put
 
+  val getClubsEndpoint =
+    clubsBaseEndpoint.secure
+      .out(jsonBody[List[Club]])
+      .get
+  
   val transferClubEndpoint =
     clubsBaseEndpoint.secure
       .in(path[ClubId].name("club-id"))

@@ -22,14 +22,19 @@ class CourtController(
       .map(_.toRight(ResourceNotFound(s"Court $courtId was not found")))
 
   val putCourt = CourtEndpoints.putCourtEndpoint.authenticateOwner
-    .serverLogic { user => (clubId, courtDto) =>
-      val court = Court.fromDto(courtDto, clubId)
-      courtDao
-        .upsertCourtForOwner(user)(clubId, court)
-        .map(_.leftMap(ForbiddenResource.apply))
-    }
+    .serverLogic: user =>
+      (clubId, courtDto) =>
+        val court = Court.fromDto(courtDto, clubId)
+        courtDao
+          .upsertCourtForOwner(user)(clubId, court)
+          .map(_.leftMap(ForbiddenResource.apply))
+
+  val getCourtsForClub = CourtEndpoints.getCourtsForClubEndpoint.serverLogicSuccess: clubId =>
+    courtDao
+      .retrieveCourtsForClub(clubId)
 
   val endpoints: List[ServerEndpoint[Any, IO]] = List(
     getCourt,
-    putCourt
+    putCourt,
+    getCourtsForClub
   )

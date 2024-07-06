@@ -29,7 +29,12 @@ class ClubController(
         .map(_.leftMap(ForbiddenResource.apply))
     }
 
+  val getClubs = ClubEndpoints.getClubsEndpoint.authenticateOwner
+    .serverLogicSuccess: user =>
+      _ => clubDao.getOwnedClubs(user.id)
+
   val endpoints: List[ServerEndpoint[Any, IO]] = List(
     putClub,
-    transferClub
+    transferClub,
+    getClubs
   )
