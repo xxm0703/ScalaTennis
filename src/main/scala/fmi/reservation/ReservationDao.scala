@@ -8,7 +8,7 @@ import doobie.postgres.implicits.*
 import fmi.infrastructure.db.DoobieDatabase.DbTransactor
 import doobie.postgres.sqlstate
 import fmi.court.{Court, CourtId}
-import fmi.user.{User, UserId}
+import fmi.user.UserId
 
 import java.time.Instant
 
@@ -132,3 +132,15 @@ class ReservationDao(dbTransactor: DbTransactor):
       .query[UserId]
       .option
       .transact(dbTransactor)
+
+
+  def retrieveReservedSlotsForCourt(courtId: CourtId): IO[List[Slot]] =
+    sql"""
+         SELECT start_time
+         FROM reservation
+         WHERE court_id = $courtId
+       """
+      .query[Instant]
+      .to[List]
+      .transact(dbTransactor)
+      .map(_.map(startTime => Slot(startTime, startTime.plusSeconds(3600))))

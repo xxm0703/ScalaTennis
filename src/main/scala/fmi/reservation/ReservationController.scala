@@ -163,10 +163,23 @@ class ReservationController(
       }
     }
 
+  private val getReservedSlotsForCourt = ReservationEndpoints.getReservedSlotsForCourtEndpoint
+    .authenticate()
+    .serverLogic { user =>
+      courtId =>
+        reservationService.retrieveCourtById(courtId).flatMap {
+          case Some(_) =>
+            reservationService.getReservedSlotsForCourt(courtId).map(_.asRight)
+          case None =>
+            IO.pure(Left(ResourceNotFound(s"Court with id $courtId not found")))
+        }
+    }
+
   val endpoints: List[ServerEndpoint[Any, IO]] = List(
     placeReservation,
     getAllReservationsPerCourt,
     deleteReservation,
     updateReservationStatus,
-    getReservation
+    getReservation,
+    getReservedSlotsForCourt
   )

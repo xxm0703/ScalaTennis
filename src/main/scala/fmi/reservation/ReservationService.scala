@@ -94,6 +94,9 @@ class ReservationService(dbTransactor: DbTransactor)(reservationDao: Reservation
     reservation: Reservation
   ): IO[Boolean] = IO.pure(userId == reservation.user && reservationStatus == ReservationStatus.Cancelled)
 
+  def getReservedSlotsForCourt(courtId: CourtId): IO[List[Slot]] =
+    reservationDao.retrieveReservedSlotsForCourt(courtId)
+    
 sealed trait ReservationError derives ConfiguredCodec, Schema
 case class ReservationAlreadyExists(reservation: ReservationId) extends ReservationError
 case class ReservationSlotAlreadyTaken(court: CourtId, startTime: Instant) extends ReservationError
