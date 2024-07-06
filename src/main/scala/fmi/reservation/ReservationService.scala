@@ -98,21 +98,26 @@ class ReservationService(
     : IO[Either[ResourceNotFound, Unit]] =
     reservationDao.deleteReservation(reservationId).flatMap {
       case Right(_) =>
+        
         println(
           s"Will attempt to send a ReservationDeleted notification for reservation with id ${reservation.reservationId}"
         )
-        //TODO: remove FK constraints on notification table 
-        notificationService.createNotification(
-          NotificationForm(
-            NotificationType.ReservationDeleted,
-            currentUser,
-            None,
-            Some(reservation.court),
-            None,
-            Some(reservation.user)
+
+        notificationService
+          .createNotification(
+            NotificationForm(
+              NotificationType.ReservationDeleted,
+              currentUser,
+              None,
+              Some(reservation.court),
+              None,
+              Some(reservation.user)
+            )
           )
-        )
-        IO.pure(Right(()))
+          .map(_ => 
+            println("Sent Reservation deleted notification")
+            Right(()))
+
       case Left(_) => IO.pure(Left(ResourceNotFound("No such reservation was found")))
     }
 

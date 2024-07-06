@@ -15,8 +15,5 @@ CREATE TABLE IF NOT EXISTS notification (
     reservation_id  VARCHAR(255),
     status ENUM('read', 'not_read') NOT NULL,
     created_at TIMESTAMP NOT NULL,
-    FOREIGN KEY (triggered_by) REFERENCES user (email),
-    FOREIGN KEY (club_id) REFERENCES club (id),
-    FOREIGN KEY (court_id) REFERENCES court (id),
-    FOREIGN KEY (reservation_id) REFERENCES reservation (id)
+    target_user  VARCHAR(255) 
 );
