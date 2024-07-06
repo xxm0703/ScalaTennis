@@ -5,6 +5,7 @@ import cats.syntax.all.*
 import fmi.{ConflictDescription, ReservationDeletionError, ReservationStatusUpdateError, ResourceNotFound}
 import fmi.court.CourtId
 import fmi.user.UserRole
+import fmi.user.UserRole.{Owner, Player, Admin}
 import fmi.user.authentication.AuthenticationService
 import org.slf4j.{Logger, LoggerFactory}
 import sttp.tapir.server.ServerEndpoint
@@ -63,11 +64,33 @@ class ReservationController(
     .serverLogic { user => reservationId =>
       reservationService.getReservationById(reservationId).flatMap {
         case Some(reservation) =>
-          if user.role == UserRole.Admin || user.id == reservation.user || user.role == UserRole.Owner then
+          if user.id == reservation.user then
             reservationService
               .deleteReservationLogic(reservationId)
               .map(_.leftMap(_ => ReservationDeletionError("Reservation could not be deleted")))
-          else IO.pure(Left(ReservationDeletionError("User is not authorized to delete reservations")))
+          else
+            user.role match
+              case Admin =>
+                reservationService
+                  .deleteReservationLogic(reservationId)
+                  .map(_.leftMap(_ => ReservationDeletionError("Reservation could not be deleted")))
+              case Player =>
+                if user.id == reservation.user then
+                  reservationService
+                    .deleteReservationLogic(reservationId)
+                    .map(_.leftMap(_ => ReservationDeletionError("Reservation could not be deleted")))
+                else IO.pure(Left(ReservationDeletionError("User is not authorized to delete reservations")))
+              case Owner =>
+                val courtOwner = reservationService.retrieveCourtOwnerForReservation(reservation.reservationId)
+                courtOwner.flatMap {
+                  case Some(owner) =>
+                    if owner == reservation.user then
+                      reservationService
+                        .deleteReservationLogic(reservationId)
+                        .map(_.leftMap(_ => ReservationDeletionError("Reservation could not be deleted")))
+                    else IO.pure(Left(ReservationDeletionError("User is not authorized to delete reservations")))
+                  case None => IO.pure(Left(ReservationDeletionError("User is not authorized to delete reservations")))
+                }
         case None => IO.pure(Left(ReservationDeletionError("No such reservation")))
       }
     }
