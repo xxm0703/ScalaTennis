@@ -127,14 +127,20 @@ class ReservationService(
       .updateReservationStatus(reservationStatusChangeForm.reservationId, reservationStatusChangeForm.reservationStatus)
       .flatMap {
         case Right(res) =>
-          if reservationStatusChangeForm.reservationStatus == ReservationStatus.Cancelled then
+          if reservationStatusChangeForm.reservationStatus == ReservationStatus.Cancelled || reservationStatusChangeForm.reservationStatus == ReservationStatus.Approved
+          then
             println(
-              s"Will attempt to send a ReservationCancelled notification for reservation with id ${res.reservationId}"
+              s"Will attempt to send a ${reservationStatusChangeForm.reservationStatus} notification for reservation with id ${res.reservationId}"
             )
+            val notificationType =
+              if reservationStatusChangeForm.reservationStatus == ReservationStatus.Cancelled then
+                NotificationType.ReservationCancelled
+              else NotificationType.ReservationApproved
+              
             notificationService
               .createNotification(
                 NotificationForm(
-                  NotificationType.ReservationCancelled,
+                  notificationType,
                   currentUser,
                   None,
                   Some(res.court),
@@ -143,11 +149,12 @@ class ReservationService(
                 )
               )
               .map(_ =>
-                println("Sent ReservationCancelled notification")
-                Right(())
-              )
+                println(s"Sent ${notificationType} notification")
+                Right(res)
+              ) else {
+              IO.pure(Right(res))
+            }
 
-          IO.pure(Right(res))
         case Left(_) => IO.pure(Left(ReservationNotFound(reservationStatusChangeForm.reservationId)))
       }
   def retrieveCourtById(courtId: CourtId): IO[Option[Court]] = reservationDao.retrieveCourtById(courtId)

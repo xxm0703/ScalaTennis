@@ -42,17 +42,23 @@ object NotificationId:
 
 enum NotificationType derives ConfiguredCodec:
   case ClubCreationRequest, CourtCreationRequest, ReservationCreationRequest, ReservationCancelled,
-    ClubCreationRequestDenied, CourtCreationRequestDenied, ReservationDeleted
+    ClubCreationRequestDenied, CourtCreationRequestDenied, ReservationDeleted, ReservationApproved, ClubCreated,
+    CourtCreated, CourtUpdated, ClubTransferred
 
 object NotificationType:
   private def fromString(s: String): Option[NotificationType] = s.toLowerCase match
-    case "club_creation_request" => Some(NotificationType.ClubCreationRequest)
-    case "court_creation_request" => Some(NotificationType.CourtCreationRequest)
-    case "reservation_creation_request" => Some(NotificationType.ReservationCreationRequest)
-    case "reservation_cancelled" => Some(NotificationType.ReservationCancelled)
-    case "club_creation_request_denied" => Some(NotificationType.ClubCreationRequestDenied)
-    case "court_creation_request_denied" => Some(NotificationType.CourtCreationRequestDenied)
-    case "reservation_deleted" => Some(NotificationType.ReservationDeleted)
+    case "club_creation_request" => Some(ClubCreationRequest)
+    case "court_creation_request" => Some(CourtCreationRequest)
+    case "reservation_creation_request" => Some(ReservationCreationRequest)
+    case "reservation_cancelled" => Some(ReservationCancelled)
+    case "club_creation_request_denied" => Some(ClubCreationRequestDenied)
+    case "court_creation_request_denied" => Some(CourtCreationRequestDenied)
+    case "reservation_deleted" => Some(ReservationDeleted)
+    case "reservation_approved" => Some(ReservationApproved)
+    case "club_created" => Some(ClubCreated)
+    case "court_created" => Some(CourtCreated)
+    case "court_updated" => Some(CourtUpdated)
+    case "club_transferred" => Some(ClubTransferred)
     case _ => None
 
   private def toString(notificationType: NotificationType): String = notificationType match
@@ -63,6 +69,11 @@ object NotificationType:
     case ReservationCancelled => "reservation_cancelled"
     case ClubCreationRequestDenied => "club_creation_request_denied"
     case CourtCreationRequestDenied => "court_creation_request_denied"
+    case ReservationApproved => "reservation_approved"
+    case ClubCreated => "club_created"
+    case CourtCreated => "court_created"
+    case ClubTransferred => "club_transferred"
+    case CourtUpdated => "court_updated"
 
   given Meta[NotificationType] =
     Meta[String].imap[NotificationType](x => NotificationType.fromString(x).get)(x => toString(x))
