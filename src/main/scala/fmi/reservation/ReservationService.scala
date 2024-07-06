@@ -5,9 +5,10 @@ import cats.effect.IO
 import cats.syntax.all.*
 import fmi.ResourceNotFound
 import fmi.infrastructure.db.DoobieDatabase.DbTransactor
-import fmi.court.CourtId
+import fmi.court.{Court, CourtId}
 import fmi.reservation.ReservationStatus.Placed
-import fmi.user.UserId
+import fmi.user.UserRole.{Admin, Owner, Player}
+import fmi.user.{User, UserId}
 import fmi.utils.DerivationConfiguration.given
 import io.circe.Codec
 import io.circe.derivation.ConfiguredCodec
@@ -16,14 +17,11 @@ import sttp.tapir.Schema
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 
-class ReservationService(dbTransactor: DbTransactor)
-                        (reservationDao: ReservationDao):
+class ReservationService(dbTransactor: DbTransactor)(reservationDao: ReservationDao):
 
-
-  
   def getReservationById(reservationId: ReservationId): IO[Option[Reservation]] =
     reservationDao.retrieveReservation(reservationId)
-  
+
   def placeReservation(userId: UserId, reservationForm: ReservationForm)
     : IO[Either[ReservationSlotAlreadyTaken, Reservation]] = for
     reservationId <- ReservationId.generate
@@ -82,7 +80,23 @@ class ReservationService(dbTransactor: DbTransactor)
         case Right(res) => IO.pure(Right(res))
         case Left(_) => IO.pure(Left(ReservationNotFound(reservationStatusChangeForm.reservationId)))
       }
+  def retrieveCourtById(courtId: CourtId): IO[Option[Court]] = reservationDao.retrieveCourtById(courtId)
 
+  def retrieveCourtForReservation(reservationId: ReservationId): IO[Option[Court]] =
+    reservationDao.retrieveCourtForReservation(reservationId)
+
+  def retrieveCourtOwnerForReservation(reservationId: ReservationId): IO[Option[UserId]] =
+    reservationDao.retrieveCourtOwnerForReservation(reservationId)
+
+  def isReservationStatusUpdateValidForPlayerUser(
+    userId: UserId,
+    reservationStatus: ReservationStatus,
+    reservation: Reservation
+  ): IO[Boolean] = IO.pure(userId == reservation.user && reservationStatus == ReservationStatus.Cancelled)
+
+  def getReservedSlotsForCourt(courtId: CourtId): IO[List[Slot]] =
+    reservationDao.retrieveReservedSlotsForCourt(courtId)
+    
 sealed trait ReservationError derives ConfiguredCodec, Schema
 case class ReservationAlreadyExists(reservation: ReservationId) extends ReservationError
 case class ReservationSlotAlreadyTaken(court: CourtId, startTime: Instant) extends ReservationError

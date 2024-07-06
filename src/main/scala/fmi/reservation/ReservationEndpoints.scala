@@ -1,7 +1,14 @@
 package fmi.reservation
 
 import fmi.court.CourtId
-import fmi.{AuthenticationError, ConflictDescription, ReservationDeletionError, ReservationStatusUpdateError, ResourceNotFound, TennisAppEndpoints}
+import fmi.{
+  AuthenticationError,
+  ConflictDescription,
+  ReservationDeletionError,
+  ReservationStatusUpdateError,
+  ResourceNotFound,
+  TennisAppEndpoints
+}
 import sttp.model.StatusCode.{BadRequest, Conflict, NoContent, NotFound}
 import sttp.tapir.{oneOfVariant, statusCode, *}
 import sttp.tapir.json.circe.*
@@ -14,7 +21,7 @@ object ReservationEndpoints:
 
   val retrieveReservationEndpoint
     : Endpoint[String, ReservationId, ResourceNotFound | AuthenticationError, Reservation, Any] =
-      reservationsBaseEndpoint.secure
+    reservationsBaseEndpoint.secure
       .in(path[ReservationId].name("reservation-id"))
       .out(jsonBody[Reservation])
       .errorOutVariantPrepend[AuthenticationError | ResourceNotFound](
@@ -44,7 +51,7 @@ object ReservationEndpoints:
       .get
 
   val deleteReservationEndpoint
-    : Endpoint[String, ReservationId,AuthenticationError | ReservationDeletionError, Unit, Any] =
+    : Endpoint[String, ReservationId, AuthenticationError | ReservationDeletionError, Unit, Any] =
     reservationsBaseEndpoint.secure
       .in(path[ReservationId].name("reservation-id"))
       .out(statusCode(NoContent))
@@ -72,3 +79,14 @@ object ReservationEndpoints:
         )
       )
       .put
+
+  val getReservedSlotsForCourtEndpoint
+    : Endpoint[String, CourtId, ResourceNotFound | AuthenticationError, List[Slot], Any] =
+    reservationsBaseEndpoint.secure
+      .in("court")
+      .in(path[CourtId]("court-id") / "reserved-slots")
+      .out(jsonBody[List[Slot]])
+      .errorOutVariantPrepend[AuthenticationError | ResourceNotFound](
+        oneOfVariant(statusCode(NotFound).and(jsonBody[ResourceNotFound]))
+      )
+      .get
