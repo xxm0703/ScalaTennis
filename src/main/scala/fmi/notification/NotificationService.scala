@@ -39,21 +39,12 @@ class NotificationService(dbTransactor: DbTransactor)(notificationDao: Notificat
     maybeNotification <- notificationDao.createNotification(notification)
   } yield maybeNotification   
 
-//
-//  // Each reservation lasts an hour
-//  private def isSlotAlreadyTaken(courtId: CourtId, startTime: Instant): IO[Boolean] =
-//    val endTime = startTime.plus(1, ChronoUnit.HOURS)
-//    reservationDao.retrieveReservationsForCourt(courtId).map { reservations =>
-//      reservations.exists { reservation =>
-//        val existingStart = reservation.startTime
-//        val existingEnd = reservation.startTime.plus(1, ChronoUnit.HOURS)
-//        startTime.isBefore(existingEnd) && endTime.isAfter(existingStart)
-//      }
-//    }
-//
-//  def getAllReservationsForCourt(courtId: CourtId): IO[List[Reservation]] =
-//    reservationDao.retrieveReservationsForCourt(courtId)
-//
+
+  def getAllNotificationsForCourt(courtId: CourtId): IO[List[Notification]] =
+    notificationDao.getNotificationsByCourt(courtId)
+
+  def retrieveCourtById(courtId: CourtId): IO[Option[Court]] = notificationDao.retrieveCourtById(courtId)
+
 //  def deleteReservationLogic(reservationId: ReservationId): IO[Either[ResourceNotFound, Unit]] =
 //    reservationDao.deleteReservation(reservationId).flatMap {
 //      case Right(_) => IO.pure(Right(()))

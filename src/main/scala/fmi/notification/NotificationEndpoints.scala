@@ -28,6 +28,18 @@ object NotificationEndpoints:
       )
       .get
 
+  val retrieveNotificationsForCourt
+  : Endpoint[String, CourtId, ResourceNotFound | AuthenticationError, List[Notification], Any] =
+    notificationsBaseEndpoint.secure
+      .in("court")
+      .in(path[CourtId].name("court-id"))
+      .out(jsonBody[List[Notification]])
+      .errorOutVariantPrepend[AuthenticationError | ResourceNotFound](
+        oneOfVariant(statusCode(NotFound).and(jsonBody[ResourceNotFound]))
+      )
+      .get
+
+
   val createNotification
   : Endpoint[String, NotificationForm, AuthenticationError | ConflictDescription, Notification, Any] =
     notificationsBaseEndpoint.secure

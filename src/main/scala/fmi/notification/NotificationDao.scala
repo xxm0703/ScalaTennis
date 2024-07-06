@@ -6,6 +6,7 @@ import doobie.*
 import doobie.implicits.*
 import doobie.postgres.implicits.*
 import doobie.postgres.sqlstate
+import fmi.court.{CourtId, Court}
 import fmi.infrastructure.db.DoobieDatabase.DbTransactor
 import fmi.user.UserId
 
@@ -44,6 +45,26 @@ class NotificationDao(dbTransactor: DbTransactor):
       .to[List]
       .transact(dbTransactor)
 
+  def getNotificationsByCourt(courtId: CourtId): IO[List[Notification]] =
+    sql"""
+      SELECT *
+      FROM notification
+      WHERE court_id = $courtId
+    """
+      .query[Notification]
+      .to[List]
+      .transact(dbTransactor)
+
+  def getNotificationsTriggeredByUser(userId: UserId): IO[List[Notification]] =
+    sql"""
+      SELECT *
+      FROM notification
+      WHERE triggered_by = $userId
+    """
+      .query[Notification]
+      .to[List]
+      .transact(dbTransactor)  
+
   def getAllNotifications: IO[List[Notification]] =
     sql"""
        SELECT *
@@ -51,6 +72,16 @@ class NotificationDao(dbTransactor: DbTransactor):
      """
       .query[Notification]
       .to[List]
+      .transact(dbTransactor)
+
+  def retrieveCourtById(courtId: CourtId): IO[Option[Court]] =
+    sql"""
+      SELECT *
+      FROM court
+      WHERE id = $courtId
+    """
+      .query[Court]
+      .option
       .transact(dbTransactor)
 
 //  def updateNotificationStatus(id: NotificationId, status: NotificationStatus): IO[Unit] =
