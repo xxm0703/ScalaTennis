@@ -2,12 +2,7 @@ package fmi.reservation
 
 import cats.effect.IO
 import cats.syntax.all.*
-import fmi.{
-  ReservationDeletionError,
-  ReservationCreationError,
-  ReservationStatusUpdateError,
-  ResourceNotFound
-}
+import fmi.{ReservationDeletionError, ReservationCreationError, ReservationStatusUpdateError, ResourceNotFound}
 import fmi.court.CourtId
 import fmi.user.UserRole
 import fmi.user.UserRole.{Owner, Player, Admin}
@@ -147,13 +142,13 @@ class ReservationController(
                     s"Attempting to update reservation status from ${reservation.reservationStatus} to ${reservationStatusChangeForm.reservationStatus}"
                   )
                   reservationService
-                    .updateReservationStatus(reservationStatusChangeForm)
+                    .updateReservationStatus(reservationStatusChangeForm, user.id)
                     .map(_.leftMap(_ => ReservationStatusUpdateError("Reservation status could not be changed")))
 
               }
             case UserRole.Admin =>
               reservationService
-                .updateReservationStatus(reservationStatusChangeForm)
+                .updateReservationStatus(reservationStatusChangeForm, user.id)
                 .map(_.leftMap(_ => ReservationStatusUpdateError("Reservation status could not be changed")))
 
             case UserRole.Owner =>
@@ -161,7 +156,7 @@ class ReservationController(
                 case Some(owner) =>
                   if user.id == owner then
                     reservationService
-                      .updateReservationStatus(reservationStatusChangeForm)
+                      .updateReservationStatus(reservationStatusChangeForm, user.id)
                       .map(_.leftMap(_ => ReservationStatusUpdateError("Reservation status could not be changed")))
                   else
                     IO.pure(
