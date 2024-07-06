@@ -7,17 +7,25 @@ import fmi.ResourceNotFound
 import fmi.infrastructure.db.DoobieDatabase.DbTransactor
 import fmi.court.{Court, CourtId}
 import fmi.reservation.ReservationStatus.Placed
-import fmi.user.UserRole.{Admin, Owner, Player}
-import fmi.user.{User, UserId}
+import fmi.user.UserRole
+import fmi.user.UserId
 import fmi.utils.DerivationConfiguration.given
 import io.circe.Codec
 import io.circe.derivation.ConfiguredCodec
 import sttp.tapir.Schema
+import fmi.notification
+import fmi.notification.{NotificationService, NotificationType,NotificationForm}
 
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 
-class ReservationService(dbTransactor: DbTransactor)(reservationDao: ReservationDao):
+class ReservationService(
+  dbTransactor: DbTransactor
+)(
+  reservationDao: ReservationDao
+)(
+  notificationService: NotificationService
+):
 
   def getReservationById(reservationId: ReservationId): IO[Option[Reservation]] =
     reservationDao.retrieveReservation(reservationId)
@@ -37,6 +45,19 @@ class ReservationService(dbTransactor: DbTransactor)(reservationDao: Reservation
     )
 
     maybeReservation <- transactReservation(reservation)
+
+    _ <- maybeReservation.traverse(reservationResult =>
+      notificationService.createNotification(
+        NotificationForm(
+          NotificationType.ReservationCreationRequest,
+          userId,
+          None,
+          Some(reservationForm.courtId),
+          Some(reservationResult.reservationId),
+          Some(userId)
+        )
+      )
+    )
   yield maybeReservation
 
   // Each reservation lasts an hour
@@ -97,7 +118,7 @@ class ReservationService(dbTransactor: DbTransactor)(reservationDao: Reservation
 
   def getReservedSlotsForCourt(courtId: CourtId): IO[List[Slot]] =
     reservationDao.retrieveReservedSlotsForCourt(courtId)
-    
+
 sealed trait ReservationError derives ConfiguredCodec, Schema
 case class ReservationAlreadyExists(reservation: ReservationId) extends ReservationError
 case class ReservationSlotAlreadyTaken(court: CourtId, startTime: Instant) extends ReservationError

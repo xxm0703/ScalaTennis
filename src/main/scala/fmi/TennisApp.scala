@@ -32,8 +32,9 @@ object TennisApp extends IOApp.Simple:
     usersModule <- UsersModule(dbModule.dbTransactor, tokenSignatureService)
     clubModule <- ClubModule(dbModule.dbTransactor, usersModule.authenticationService)
     courtModule <- CourtModule(dbModule.dbTransactor, usersModule.authenticationService)
-    reservationModule <- ReservationModule(dbModule.dbTransactor, usersModule.authenticationService)
     notificationModule <- NotificationModule(dbModule.dbTransactor, usersModule.authenticationService)
+    reservationModule <- ReservationModule(dbModule.dbTransactor, usersModule.authenticationService, notificationModule.notificationService)
+  
 
     apiEndpoints = usersModule.endpoints ::: clubModule.endpoints ::: courtModule.endpoints ::: reservationModule.endpoints ::: notificationModule.endpoints
     docEndpoints = SwaggerInterpreter().fromServerEndpoints[IO](apiEndpoints, "tennis-app", "1.0.0")
